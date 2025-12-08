@@ -263,7 +263,7 @@ const showChatWithAssistant = () => {
               </View>
               <View style={{ flex: 1 }}>
                 <View style={styles.nameRow}>
-                  <Text style={styles.name}>{astrologersDetails.name|| 'Astrologer'}</Text>
+                  <Text style={[styles.name,{maxWidth:isFollowed?'80%':'55%'}]} numberOfLines={1}>{astrologersDetails.name|| 'Astrologer'}</Text>
                   <View style={{ marginHorizontal: 6 }}>
                     {astrologersDetails.isverified && <RightGreenIcon width={16} height={16} />}
                   </View>
@@ -285,7 +285,7 @@ const showChatWithAssistant = () => {
 
                 <Text style={styles.subText}>{formatKnowledge(astrologersDetails.knowledge)}</Text>
                 <Text style={styles.subText}>{formatKnowledge(astrologersDetails.language)}</Text>
-                <Text style={styles.subText}>Exp - {astrologersDetails.experience}</Text>
+                <Text style={styles.subText}>Exp - {astrologersDetails.experience} years</Text>
                 <Text style={styles.price}>₹ {astrologersDetails.charge}/min</Text>
                 {/* <View style={styles.priceRow}>
                   <Text style={styles.oldPrice}>₹ {astrologersDetails.charge}</Text>
@@ -299,13 +299,13 @@ const showChatWithAssistant = () => {
             <View style={styles.minutesCard}>
               <View style={styles.minutesItem}>
                 <ChatIcon width={23} height={23} style={styles.minutesIcon}/>
-                <Text style={styles.minutesValue}>{astrologersDetails.totalChat} </Text>
+                <Text style={styles.minutesValue}>{astrologersDetails.totalChat || 0} </Text>
                 <Text style={styles.minutesLabel}>min</Text>
               </View>
               <View style={{borderWidth:.6,borderColor:'gray',width:.6,height:25}}/>
               <View style={styles.minutesItem}>
                  <CallIcon width={21} height={21} style={styles.minutesIcon}/>
-                <Text style={styles.minutesValue}>{astrologersDetails.totalCall} </Text>
+                <Text style={styles.minutesValue}>{astrologersDetails.totalCall || 0} </Text>
                 <Text style={styles.minutesLabel}>min</Text>
               </View>
             </View>
@@ -361,11 +361,11 @@ const showChatWithAssistant = () => {
               <Text style={styles.reviewText}>{item.message}</Text>
 
               {item.reply?.trim() ? (<View style={styles.replyBox}>
-                <Text style={styles.replyName}>{astrologersDetails.name}</Text>
-                <Text>{item.reply}</Text>
-              </View>) : null}
-            </View>
-          ))}
+                    <Text style={styles.replyName}>{astrologersDetails.name}</Text>
+                    <Text>{item.reply}</Text>
+                  </View>) : null}
+                </View>
+              ))}
 
           {reviews.length > 3 ? (<TouchableOpacity onPress={()=>handleAllReviews()}>
             <Text style={styles.seeAllReviews}>See all reviews</Text>
@@ -548,8 +548,13 @@ ribbonText: {
    },
   orders: { color: '#777', marginTop: 3, fontSize: 9 },
   nameRow: { flexDirection: "row", alignItems: "center" },
-  name: { fontSize: 18, fontWeight: "700", fontFamily: Fonts.Regular },
+  name: {
+    fontSize: 18, 
+    fontWeight: "700", 
+    fontFamily: Fonts.Regular
+   },
   followBtn: {
+    
     marginLeft: 4,
     backgroundColor: colors.primaryColor,
     paddingHorizontal: 12,

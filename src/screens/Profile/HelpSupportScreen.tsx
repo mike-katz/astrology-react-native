@@ -50,9 +50,19 @@ const HelpSupportScreen = () =>{
             <Text style={styles.userNumber}>{ServiceConstants.User_PHONE}</Text>
           </View>
 
-          <TouchableOpacity style={styles.editIconWrapper} onPress={() => navigation.push('EditProfileScreen')}>
+          <TouchableOpacity style={styles.editIconWrapper} onPress={() => {
+                   if(ServiceConstants.User_ID==null){
+                      navigation.reset({
+                                    index: 0,
+                                    routes: [{ name: 'AuthStack' }]
+                                  });
+                   }else{
+                      navigation.push('EditProfileScreen')
+                   }
+            }}>
              <Feather name="edit-3" size={14} color="#444" />
           </TouchableOpacity>
+
         </View>
 
         <View style={styles.walletBox}>

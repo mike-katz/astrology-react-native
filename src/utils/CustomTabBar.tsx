@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     flexDirection: 'row',
     backgroundColor: '#fff',
-    height: Platform.OS === 'ios' ? '10%' : '8%', //100 and 80 are the heights for iOS and Android respectively
+    height: Platform.OS === 'ios' ? '10%' : '9%', //100 and 80 are the heights for iOS and Android respectively
     borderTopLeftRadius: 20,//30
     borderTopRightRadius: 20, //30
     shadowColor: '#000',

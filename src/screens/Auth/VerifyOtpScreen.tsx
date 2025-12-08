@@ -7,7 +7,8 @@ import {
   Platform,
   Alert, Linking,
   StatusBar,
-  Image
+  Image,
+  useColorScheme
 } from 'react-native';
 import { RouteProp } from '@react-navigation/native';
 import { Constants } from '../../constant';
@@ -34,6 +35,7 @@ const RESEND_OTP_TIMER = 30;
 
 const VerifyOtpScreen = ({ route, navigation }: VerifyOtpScreenProps) => {
   const { phone, countrycode } = route.params;
+  const colorScheme = useColorScheme();
   const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(''));
   const [timer, setTimer] = useState(RESEND_OTP_TIMER);
   const inputRefs = useRef<TextInput[]>([]);
@@ -258,6 +260,8 @@ const VerifyOtpScreen = ({ route, navigation }: VerifyOtpScreenProps) => {
               onChangeText={value => handleChange(value, index)}
               onKeyPress={e => handleKeyPress(e, index)}
               cursorColor={colors.primaryColor}
+              placeholderTextColor={colorScheme === 'dark' ? '#aaa' : '#666'}
+                         
             />
           ))}
         </View>

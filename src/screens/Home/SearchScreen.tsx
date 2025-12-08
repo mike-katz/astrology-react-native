@@ -1,12 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, useColorScheme } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { BackIcon } from '../../assets/icons';
 import { useNavigation } from '@react-navigation/native';
-import { Fonts } from '../../styles';
+import { colors, Fonts } from '../../styles';
 
 const SearchScreen = () => {
     const navigation = useNavigation<any>();
+      const colorScheme = useColorScheme(); 
     const handleBack = () => {
         navigation.goBack();
     }
@@ -23,7 +24,8 @@ const SearchScreen = () => {
                     <TextInput
                         placeholder="Search astrologer, astromall products"
                         style={styles.searchInput}
-                        placeholderTextColor="#A0A0A0"
+                        placeholderTextColor={colorScheme === 'dark' ? '#aaa' : '#666'}
+                        cursorColor={colors.primaryColor}
                     />
                 </View>
 

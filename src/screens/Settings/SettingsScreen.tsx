@@ -17,6 +17,8 @@ import { colors, Fonts } from "../../styles";
 import { AppSpinner } from "../../utils/AppSpinner";
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { BackIcon } from "../../assets/icons";
+import { logoutUser } from "../../redux/actions/UserActions";
+import ManagePrivacyModal from "./ManagePrivacyModal";
 
 export default function SettingsScreen({ navigation }: any) {
     // toggles
@@ -24,6 +26,7 @@ export default function SettingsScreen({ navigation }: any) {
     const [liveEvents, setLiveEvents] = useState(true);
     const [allowReviewName, setAllowReviewName] = useState(true);
     const [activity, setActivity] = useState<boolean>(false);
+    const [showPrivacy, setShowPrivacy] = useState(false);
 
 
     // handlers - replace with real logic / API
@@ -38,6 +41,7 @@ export default function SettingsScreen({ navigation }: any) {
     };
     const handleManagePrivacy = () => {
         console.log("Manage your privacy");
+        setShowPrivacy(true);
     };
     const handleTerms = () => {
         console.log("Terms and Conditions");
@@ -57,7 +61,7 @@ export default function SettingsScreen({ navigation }: any) {
                 { text: "Cancel", style: "cancel" },
                 {
                     text: "OK", onPress: () => {
-
+                        logoutUser(true);
                         navigation.reset({
                             index: 0,
                             routes: [{ name: 'AuthStack' }],
@@ -78,6 +82,7 @@ export default function SettingsScreen({ navigation }: any) {
                 { text: "Cancel", style: "cancel" },
                 {
                     text: "OK", onPress: () => {
+                        logoutUser(true);
                         navigation.reset({
                             index: 0,
                             routes: [{ name: 'AuthStack' }],
@@ -126,7 +131,7 @@ export default function SettingsScreen({ navigation }: any) {
                             <Switch
                                 value={astromallChat}
                                 onValueChange={handleToggleAstromallChat}
-                                trackColor={{ true: colors.primaryColor || "#3ad25a", false: "#ddd" }}
+                                trackColor={{ true: colors.primaryColor, false: "#ddd" }}
                                 thumbColor={Platform.OS === "android" ? (astromallChat ? "#fff" : "#fff") : undefined}
                             />
                         </View>
@@ -139,7 +144,8 @@ export default function SettingsScreen({ navigation }: any) {
                             <Switch
                                 value={liveEvents}
                                 onValueChange={handleToggleLiveEvents}
-                                trackColor={{ true: colors.primaryColor || "#3ad25a", false: "#ddd" }}
+                                trackColor={{ true: colors.primaryColor, false: "#ddd" }}
+                                thumbColor={Platform.OS === "android" ? (astromallChat ? "#fff" : "#fff") : undefined}
                             />
                         </View>
                     </View>
@@ -160,7 +166,8 @@ export default function SettingsScreen({ navigation }: any) {
                             <Switch
                                 value={allowReviewName}
                                 onValueChange={handleToggleAllowReview}
-                                trackColor={{ true: colors.primaryColor || "#3ad25a", false: "#ddd" }}
+                                trackColor={{ true: colors.primaryColor, false: "#ddd" }}
+                                thumbColor={Platform.OS === "android" ? (astromallChat ? "#fff" : "#fff") : undefined}
                             />
                         </View>
                     </View>
@@ -183,9 +190,9 @@ export default function SettingsScreen({ navigation }: any) {
 
                     <TouchableOpacity style={s.listItem} onPress={handleLicense}>
                         <View style={{ flexDirection: "row", alignItems: "center" }}>
-                            <View style={s.iconBox}>
+                            {/* <View style={s.iconBox}> */}
                                 <Feather name="file-text" size={18} color={colors.primaryColor || "#F1C42B"} />
-                            </View>
+                            {/* </View> */}
                             <Text style={[s.listText, { marginLeft: 8 }]}>License</Text>
                         </View>
                         <Feather name="chevron-right" size={18} color="#6B6B6B" />
@@ -194,9 +201,9 @@ export default function SettingsScreen({ navigation }: any) {
                     {/* Logout */}
                     <TouchableOpacity style={s.listItem} onPress={handleLogout}>
                         <View style={{ flexDirection: "row", alignItems: "center" }}>
-                            <View style={s.iconBox}>
+                            {/* <View style={s.iconBox}> */}
                                 <Feather name="log-out" size={18} color="#333" />
-                            </View>
+                            {/* </View> */}
                             <Text style={[s.listText, { marginLeft: 8 }]}>Logout</Text>
                         </View>
                         <Feather name="chevron-right" size={18} color="#6B6B6B" />
@@ -205,9 +212,9 @@ export default function SettingsScreen({ navigation }: any) {
                     {/* Delete - red */}
                     <TouchableOpacity style={[s.listItem, { borderColor: "transparent" }]} onPress={handleDeleteAccount}>
                         <View style={{ flexDirection: "row", alignItems: "center" }}>
-                            <View style={[s.iconBox, { backgroundColor: "#fff", borderWidth: 0 }]}>
+                            {/* <View style={[s.iconBox, { backgroundColor: "#fff", borderWidth: 0 }]}> */}
                                 <Feather name="trash-2" size={18} color="#D23B3B" />
-                            </View>
+                            {/* </View> */}
                             <Text style={[s.listText, { marginLeft: 8, color: "#D23B3B", fontWeight: "600" }]}>
                                 Delete my Account
                             </Text>
@@ -216,6 +223,16 @@ export default function SettingsScreen({ navigation }: any) {
 
                     <View style={{ height: 30 }} />
                 </ScrollView>
+
+
+                <ManagePrivacyModal
+                    visible={showPrivacy}
+                    onClose={() => setShowPrivacy(false)}
+                    onSubmit={(state) => {
+                        console.log("privacy settings", state);
+                        // call API or save local setting
+                    }}
+                    />
                 <AppSpinner show={activity} />
             </SafeAreaView>
         </SafeAreaProvider>

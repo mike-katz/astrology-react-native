@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Pressable,
   Alert,
+  useColorScheme,
 } from "react-native";
 import Feather from "react-native-vector-icons/Feather";
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
@@ -28,6 +29,7 @@ interface KundliItem {
 
 const KundliScreen = () => {
   const navigation = useNavigation<any>();
+  const colorScheme = useColorScheme();
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState("");
   const [kundlis,setKundlis] = useState<KundliItem[]>([
@@ -171,8 +173,9 @@ const onRefresh = async () => {
                 value={search}
                 onChangeText={setSearch}
                 placeholder="Search kundli by name"
-                placeholderTextColor="#999"
                 style={styles.searchInput}
+                placeholderTextColor={colorScheme === 'dark' ? '#aaa' : '#666'}
+                cursorColor={colors.primaryColor}
                 />
        </View>
 
@@ -181,6 +184,7 @@ const onRefresh = async () => {
             data={filtered}
             keyExtractor={(item) => item.id}
             renderItem={renderItem}
+            showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 90, flexGrow: 1 }}
             refreshing={refreshing}
             onRefresh={onRefresh}

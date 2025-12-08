@@ -97,7 +97,7 @@ export const getUserDetails = async () => {
 export const getPandit = async (page:any) => {
   const body: any = {};
   body['page'] = page;
-  body['limit'] = 100;
+  body['limit'] = 20;
   const response = await getRequest({
     url: Apis.getPandit,
     header: headerWithBearer(),
@@ -144,7 +144,7 @@ export const applyUserFollowApi = async (panditID: any) => {
 export const getFollowing = async (page:any) => {
     const body: any = {};
     body['page'] = page;
-    body['limit'] = 10;
+    body['limit'] = 20;
   const response = await getRequest({
     url: Apis.getFollowing,
     header: headerWithBearer(),
@@ -181,6 +181,7 @@ export const logoutUser = (isLogout:any) => {
   AsyncStorage.removeItem('isLoggedIn')
   AsyncStorage.removeItem('token');
   AppConst.isUserLoggedIn = false;
+  ServiceConstants.User_ID = null;
   ServiceConstants.setBearerToken(null);
   ServiceConstants.setUserReferralCode(null);
   ServiceConstants.setUserphone(null);

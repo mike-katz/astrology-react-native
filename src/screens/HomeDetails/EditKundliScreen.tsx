@@ -8,6 +8,7 @@ import {
     ScrollView,
     Alert,
     Switch,
+    useColorScheme,
 } from "react-native";
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import DatePicker from "react-native-date-picker";
@@ -18,6 +19,7 @@ import { BackIcon } from "../../assets/icons";
 
 const EditKundliScreen = ({ navigation, route }: any) => {
     //   const navigation = useNavigation<any>();
+     const colorScheme = useColorScheme();
     const { onSelect, item } = route.params;
     const [name, setName] = useState(item.name);
     const [gender, setGender] = useState("Female");
@@ -99,6 +101,8 @@ const EditKundliScreen = ({ navigation, route }: any) => {
                                 value={name}
                                 onChangeText={setName}
                                 placeholder="Name"
+                                placeholderTextColor={colorScheme === 'dark' ? '#aaa' : '#666'}
+                                cursorColor={colors.primaryColor}
                             />
                         </View>
 

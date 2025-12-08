@@ -12,6 +12,7 @@ import {
     Dimensions,
     Pressable,
     Share,
+    useColorScheme,
 } from "react-native";
 import FastImage from "react-native-fast-image";
 import Feather from "react-native-vector-icons/Feather";
@@ -26,6 +27,7 @@ import { socket } from '../../../socket';
 import RateAstrologerModal from "../../utils/RateAstrologerModal";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
+import { StarRating } from "../../constant/Helper";
 const { width } = Dimensions.get("window");
 
 
@@ -47,13 +49,14 @@ const DUMMY_MESSAGES: Message[] = [
 
 export default function ChatWindow() {
     const navigation = useNavigation<any>();
+     const colorScheme = useColorScheme();
     const [isConnected, setIsConnected] = useState(false);
     const [transport, setTransport] = useState('N/A');
     const [showRateModal, setShowRateModal] = useState(false);
     const [messages, setMessages] = useState<Message[]>(DUMMY_MESSAGES);
     const [text, setText] = useState("");
     const flatRef = useRef<FlatList>(null);
-    const [isChatEnded, setIsChatEnded] = useState(false);
+    const [isChatEnded, setIsChatEnded] = useState(true);
     const userDetailsData = useSelector((state: RootState) => state.userDetails.userDetails);
     const [ratingStar, setRatingStar] = useState(0);
     const [message, setMessage] = useState("");
@@ -280,9 +283,10 @@ export default function ChatWindow() {
                         <View style={styles.ratingRow}>
                             <View style={{marginRight:40}}>
                             <View style={{marginLeft:5, flexDirection: "row", alignItems: "center" }}>
-                                {Array.from({ length: ratingStar }).map((_, i) => (
+                                {/* {Array.from({ length: ratingStar }).map((_, i) => (
                                     <Feather key={i} name="star" size={14} color={i < 4 ? colors.primaryColor : "#D1D1D1"} style={{ marginRight: 6 }} />
-                                ))}
+                                ))} */}
+                                 <StarRating size={20} rating={ratingStar} />
                             </View>
                             <Text style={styles.ratingLabel}>{message}</Text>
                             </View>
@@ -323,6 +327,8 @@ export default function ChatWindow() {
                                 placeholder="Write a message..."
                                 style={styles.input}
                                 multiline
+                                placeholderTextColor={colorScheme === 'dark' ? '#aaa' : '#666'}
+                                cursorColor={colors.primaryColor}
                             />
                         </View>
 

@@ -1,0 +1,607 @@
+import React, { useMemo, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  FlatList,
+  Dimensions,
+  ScrollView,
+} from "react-native";
+import FastImage from "react-native-fast-image";
+import Feather from "react-native-vector-icons/Feather";
+import { useNavigation } from "@react-navigation/native";
+import { AppSpinner } from "../../utils/AppSpinner";
+import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
+import { colors, Fonts } from "../../styles";
+
+const { width } = Dimensions.get("window");
+
+// Example single item (replace with real data)
+const SAMPLE_ORDERS = [
+  {
+    id: "1",
+    avatar:
+      "https://d1gcna0o0ldu5v.cloudfront.net/fit-in/135x135/images/77fb9922-d879-4e6c-b981-bb50813cf5c9.jpg",
+    name: "Astrologer",
+    message: "apki personal life bahut achi rahegi 2025 se",
+    date: "29 Nov 2025",
+    online: true,
+  },
+];
+
+const walletData = [
+  {
+    id: '1',
+    title: 'Chat with Astrologer for 2 minutes',
+    amount: '+₹ 0.0',
+    date: '29 Nov 25, 08:34 PM',
+    hash: '#CHAT_NEW295423182',
+  },
+  {
+    id: '2',
+    title: 'Call with Astrologer for 5 minutes',
+    amount: '+₹ 50.0',
+    date: '01 Dec 25, 05:12 PM',
+    hash: '#CHAT_CALL293889182',
+  },
+    {
+    id: '3',
+    title: 'Chat with Astrologer for 2 minutes',
+    amount: '+₹ 0.0',
+    date: '29 Nov 25, 08:34 PM',
+    hash: '#CHAT_NEW295423182',
+  },
+  {
+    id: '4',
+    title: 'Call with Astrologer for 5 minutes',
+    amount: '+₹ 50.0',
+    date: '01 Dec 25, 05:12 PM',
+    hash: '#CHAT_CALL293889182',
+  },
+    {
+    id: '5',
+    title: 'Chat with Astrologer for 2 minutes',
+    amount: '+₹ 0.0',
+    date: '29 Nov 25, 08:34 PM',
+    hash: '#CHAT_NEW295423182',
+  },
+  {
+    id: '6',
+    title: 'Call with Astrologer for 5 minutes',
+    amount: '+₹ 50.0',
+    date: '01 Dec 25, 05:12 PM',
+    hash: '#CHAT_CALL293889182',
+  },
+];
+
+export default function OrderHistoryScreen() {
+  const navigation = useNavigation<any>();
+  const [activity, setActivity] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<"wallet" | "orders" | "remedies">(
+    "orders"
+  );
+  const [activeWalletTab, setWalletActiveTab] = useState<'wallet' | 'payment'>('wallet');
+  const [activeRemedyTab, setRemedytActiveTab] = useState<'suggested' | 'purchased' | 'remedychat'>('remedychat');
+
+  const tabs = useMemo(
+    () => [
+      { id: "wallet", label: "Wallet" },
+      { id: "orders", label: "Orders" },
+      { id: "remedies", label: "Remedies" },
+    ],
+    []
+  );
+    const tabsRemedy = useMemo(
+    () => [
+      { id: "suggested", label: "Suggested" },
+      { id: "purchased", label: "Purchased" },
+      { id: "remedychat", label: "Remedy Chat" },
+    ],
+    []
+  );
+
+  const handleBack = () => navigation.goBack?.();
+
+  const renderItem = ({ item }: any) => (
+    <TouchableOpacity style={styles.row}>
+      <View style={styles.avatarWrap}>
+        <FastImage style={styles.avatar} source={{ uri: item.avatar }} />
+        {item.online && <View style={styles.onlineDot} />}
+      </View>
+
+      <View style={styles.body}>
+        <Text style={styles.name}>{item.name}</Text>
+        <Text style={styles.message} numberOfLines={1}>
+          {item.message}
+        </Text>
+      </View>
+
+      <View style={styles.right}>
+        <Text style={styles.date}>{item.date}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+
+  return (
+        <SafeAreaProvider>
+            <SafeAreaView style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.iconBtn} onPress={handleBack}>
+          <Feather name="arrow-left" size={20} color="#222" />
+        </TouchableOpacity>
+
+        <Text style={styles.headerTitle}>Order History</Text>
+
+        <TouchableOpacity style={[styles.iconBtn,{display:'none'}]} onPress={() => { /* search action */ }}>
+          <Feather name="search" size={20} color="#222" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Tabs */}
+      <View style={styles.tabs}>
+        {tabs.map((t) => {
+          const isActive = activeTab === (t.id as any);
+          return (
+            <TouchableOpacity
+              key={t.id}
+              style={styles.tabItem}
+              onPress={() => setActiveTab(t.id as any)}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>
+                {t.label}
+              </Text>
+              {isActive && <View style={styles.tabIndicator} />}
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      {activeTab === "wallet" && (
+        <View style={styles.walletWrap}>
+            {/* Balance Row */}
+            <Text style={styles.balanceTitle}>Available Balance</Text>
+
+            <View style={styles.balanceRow}>
+            <Text style={styles.balanceAmount}>₹ 0.0</Text>
+            <TouchableOpacity style={styles.rechargeBtn}>
+                <Text style={styles.rechargeText}>Recharge</Text>
+            </TouchableOpacity>
+            </View>
+
+            {/* Buttons Row */}
+            <View style={styles.walletBtnRow}>
+            <TouchableOpacity 
+                style={[
+            styles.walletInactiveBtn,
+            activeWalletTab === 'wallet' && styles.walletActiveBtn
+            ]} onPress={()=>setWalletActiveTab('wallet')}>
+                <Text style={[
+            styles.walletInactiveText,
+            activeWalletTab === 'wallet' && styles.walletActiveText
+            ]}>Wallet Transactions</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+                style={[
+            styles.paymentInactiveBtn,
+            activeWalletTab === 'payment' && styles.paymentActiveBtn
+            ]} onPress={()=>setWalletActiveTab('payment')}
+            >
+                <Text style={[styles.paymentInactiveText, activeWalletTab === 'payment' && styles.paymentInactiveText]}>Payment Logs</Text>
+            </TouchableOpacity>
+            </View>
+
+
+            {activeWalletTab === 'wallet' &&<FlatList
+                data={walletData}
+                keyExtractor={(item) => item.id}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingVertical: 10 }}
+                renderItem={({ item }) => (
+                    <View style={styles.card}>
+                    <View style={styles.cardRow}>
+                        <Text style={styles.cardTitle}>Chat with Astrologer for 2 minutes</Text>
+                        <Text style={styles.cardAmount}>+₹ 0.0</Text>
+                    </View>
+
+                    <Text style={styles.cardDate}>29 Nov 25, 08:34 PM</Text>
+
+                    <View style={styles.hashRow}>
+                        <Text style={styles.cardHash}>#CHAT_NEW295423182</Text>
+                        <Feather name="copy" size={15} color="#777" />
+                    </View>
+                    </View>
+                )}
+                ListEmptyComponent={
+                    <View style={{ flex:1, justifyContent:'center', alignItems:'center', marginTop: 50 }}>
+                    <Text style={{ fontSize: 16, color: "#888", fontFamily: Fonts.Medium }}>
+                        No Record Found
+                    </Text>
+                    </View>
+                }
+                />}
+
+
+
+        </View>
+        )}
+
+
+        {activeTab === "remedies" && (
+                  <View style={styles.tabs}>
+                    {tabsRemedy.map((t) => {
+                    const isActive = activeRemedyTab === (t.id as any);
+                    return (
+                    <TouchableOpacity 
+                        key={t.id}
+                        style={[
+                        styles.remedyInactiveBtn,
+                        isActive && styles.remedyActiveBtn
+                        ]} 
+                    onPress={()=>setRemedytActiveTab(t.id as any)}
+                    activeOpacity={0.8}>
+                        <Text style={[
+                                styles.remedyInactiveText,
+                                isActive && styles.remedyActiveText
+                                ]}>{t.label}</Text>
+                    </TouchableOpacity>
+                    );
+                    })}
+                </View>
+        )
+
+        }
+
+
+      {/* Content area */}
+      <View style={styles.content}>
+        {/* If orders list is empty show placeholder */}
+        {activeTab === "orders" && SAMPLE_ORDERS.length === 0 ? (
+          <View style={styles.empty}>
+            <Text style={styles.emptyText}>No orders yet</Text>
+          </View>
+        ) : activeTab === "orders" && (
+          <FlatList
+            data={SAMPLE_ORDERS}
+            keyExtractor={(i) => i.id}
+            renderItem={renderItem}
+            contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
+      </View>
+         <AppSpinner show={activity} />
+               </SafeAreaView>
+           </SafeAreaProvider>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: "#fff" },
+
+  header: {
+    height: 62,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 14,
+    borderBottomWidth: 0.3,
+    borderColor: "#E7E7E7",
+    backgroundColor: "#fff",
+  },
+  iconBtn: {
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  headerTitle: {
+    flex: 1,
+    textAlign: "center",
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#111",
+    fontFamily:Fonts.Medium
+  },
+
+  tabs: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    backgroundColor: "#fff",
+  },
+  tabItem: {
+    flex: 1,
+    alignItems: "center",
+    paddingBottom: 6,
+  },
+  tabLabel: {
+    fontSize: 14,
+    color: "#888",
+    paddingVertical: 4,
+    fontFamily:Fonts.Medium
+  },
+  tabLabelActive: {
+    color: "#222",
+    fontWeight: "600",
+  },
+  tabIndicator: {
+    height: 2,
+    width: '80%',
+    borderRadius: 3,
+    backgroundColor: colors.primaryColor, // yellow
+    marginTop: 6,
+  },
+
+  remedyActiveBtn: {
+    flex: 1,
+    backgroundColor: colors.primaryColor,
+    borderRadius: 22,
+    height: 36,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  remedyActiveText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#000",
+    fontFamily:Fonts.Medium
+  },
+  remedyInactiveBtn: {
+    flex: 1,
+    marginHorizontal:3,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+    borderRadius: 22,
+    height: 36,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  remedyInactiveText: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: "#666",
+    fontFamily:Fonts.Medium
+  },
+
+  content: {
+    flex: 1,
+    paddingTop: 10,
+  },
+
+  list: {
+    paddingHorizontal: 16,
+  },
+
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 16,
+    borderBottomWidth: 0.6,
+    borderColor: "#F2F2F2",
+  },
+
+  avatarWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    overflow: "visible",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 2,
+    borderColor: "#F1C42B", // accent border that matches your app
+    backgroundColor: "#fff",
+  },
+  onlineDot: {
+    position: "absolute",
+    right: 6,
+    bottom: 6,
+    width: 12,
+    height: 12,
+    backgroundColor: "#2AC066",
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
+
+  body: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  name: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#111",
+    marginBottom: 6,
+    fontFamily:Fonts.Medium
+  },
+  message: {
+    fontSize: 13,
+    color: "#777",
+    fontFamily:Fonts.Medium
+  },
+
+  right: {
+    width: 88,
+    alignItems: "flex-end",
+    justifyContent: "center",
+  },
+  date: {
+    fontSize: 12,
+    color: "#777",
+    fontFamily:Fonts.Medium
+  },
+
+  empty: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emptyText: {
+    color: "#999",
+    fontSize: 15,
+    fontFamily:Fonts.Medium
+  },
+
+  walletWrap: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    marginBottom:210
+  },
+
+  balanceTitle: {
+    fontSize: 14,
+    color: "#777",
+    marginBottom: 6,
+    fontFamily:Fonts.Medium
+  },
+  balanceRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  balanceAmount: {
+    fontSize: 26,
+    fontWeight: "700",
+    color: "#000",
+    fontFamily:Fonts.Medium
+  },
+  rechargeBtn: {
+    backgroundColor: colors.primaryColor,
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 18,
+  },
+  rechargeText: {
+    color: "#000",
+    fontWeight: "600",
+    fontSize: 14,
+    fontFamily:Fonts.Medium
+  },
+
+  walletBtnRow: {
+    flexDirection: "row",
+    marginTop: 18,
+    marginBottom: 12,
+  },
+  walletActiveBtn: {
+    flex: 1,
+    backgroundColor: colors.primaryColor,
+    borderRadius: 22,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  walletActiveText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#000",
+    fontFamily:Fonts.Medium
+  },
+  walletInactiveBtn: {
+    flex: 1,
+    marginHorizontal: 5,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+    borderRadius: 22,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  walletInactiveText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#666",
+    fontFamily:Fonts.Medium
+  },
+  paymentActiveBtn: {
+    flex: 1,
+    backgroundColor:colors.primaryColor,
+    borderRadius: 22,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  paymentActiveText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#000",
+    fontFamily:Fonts.Medium
+  },
+  paymentInactiveBtn: {
+    flex: 1,
+    marginLeft: 10,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+    borderRadius: 22,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  paymentInactiveText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#666",
+    fontFamily:Fonts.Medium
+  },
+
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "#EDEDED",
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+    marginTop: 4,
+  },
+
+  cardRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  cardTitle: {
+    fontSize: 15,
+    color: "#000",
+    fontWeight: "600",
+    flex: 1,
+    fontFamily:Fonts.Medium
+  },
+  cardAmount: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#0FAD4E",
+    marginLeft: 10,
+    fontFamily:Fonts.Medium
+  },
+  cardDate: {
+    fontSize: 13,
+    color: "#666",
+    marginTop: 4,
+    fontFamily:Fonts.Medium
+  },
+
+  hashRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 6,
+  },
+  cardHash: {
+    fontSize: 13,
+    color: "#666",
+    marginRight: 6,
+    fontFamily:Fonts.Medium
+  },
+});

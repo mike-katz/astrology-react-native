@@ -8,10 +8,11 @@ import {
   FlatList,
   Image,
   StyleSheet,
+  useColorScheme,
 } from "react-native";
 import { BackIcon } from "../../assets/icons";
 import SearchIcon from "../../assets/icons/SearchIcon";
-import { Fonts } from "../../styles";
+import { colors, Fonts } from "../../styles";
 
 interface LocationItem {
   city: string;
@@ -34,6 +35,7 @@ const SAMPLE_RESULTS: LocationItem[] = [
 ];
 
 const SearchPlaceScreen=({ navigation, route }:any) => {
+  const colorScheme = useColorScheme();
   const [query, setQuery] = useState<string>("");
   const [filtered, setFiltered] = useState<LocationItem[]>(SAMPLE_RESULTS);
     
@@ -98,7 +100,8 @@ const SearchPlaceScreen=({ navigation, route }:any) => {
           value={query}
           onChangeText={(text) => setQuery(text)}
           placeholder="Search City"
-          placeholderTextColor="#999"
+          placeholderTextColor={colorScheme === 'dark' ? '#aaa' : '#666'}
+           cursorColor={colors.primaryColor}
           style={styles.searchInput}
         />
 

@@ -94,7 +94,7 @@ const FollowingScreen= () =>{
           <Text style={styles.name}>{item.name}</Text>
           <Text style={styles.subtitle}>{formatKnowledge(item.knowledge)}</Text>
           <Text style={styles.lang}>{formatKnowledge(item.language)}</Text>
-          <Text style={styles.exp}>Exp- {item.experience}</Text>
+          <Text style={styles.exp}>Exp- {item.experience} years</Text>
           <Text style={styles.price}>₹ {item.charge}/min</Text>
           {/* <View style={styles.priceRow}>
             <Text style={styles.oldPrice}>₹ {item.charge}</Text>

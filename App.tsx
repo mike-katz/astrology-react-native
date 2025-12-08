@@ -43,6 +43,7 @@ import PanditProfileDetailsScreen from './src/screens/HomeDetails/PanditProfileD
 import FollowingScreen from './src/screens/Profile/FollowingScreen';
 import ChatWindow from './src/screens/HomeDetails/ChatWindow';
 import SettingsScreen from './src/screens/Settings/SettingsScreen';
+import OrderHistoryScreen from './src/screens/HomeDetails/OrderHistoryScreen';
 
 
  // Types for navigation
@@ -67,7 +68,8 @@ import SettingsScreen from './src/screens/Settings/SettingsScreen';
    PanditReviewListScreen: undefined;
    FollowingScreen: undefined;
    ChatWindow:undefined;
-   SettingsScreen:undefined
+   SettingsScreen:undefined;
+   OrderHistoryScreen:undefined;
  };
  
  type AuthStackParamList = {
@@ -223,6 +225,11 @@ const RootNavigator = ({ initialRoute }: { initialRoute: keyof RootStackParamLis
         name="SettingsScreen"
         component={SettingsScreen}
         options={{ headerShown: false }} />
+
+    <RootStack.Screen
+        name="OrderHistoryScreen"
+        component={OrderHistoryScreen}
+        options={{ headerShown: false }} />    
         
     </RootStack.Navigator>)
 };

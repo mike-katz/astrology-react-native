@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
-  View, Modal, Text, TouchableOpacity, TextInput, StyleSheet, Image, ScrollView
+  View, Modal, Text, TouchableOpacity, TextInput, StyleSheet, Image, ScrollView,
+  useColorScheme
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import StarRating from 'react-native-star-rating-widget';
@@ -11,6 +12,7 @@ import FastImage from 'react-native-fast-image';
 
 const RateAstrologerModal = ({ visible, onClose, onSubmit }:any) => {
   const [rating, setRating] = useState(0);
+  const colorScheme = useColorScheme();
   const [review, setReview] = useState("");
   const [hideName, setHideName] = useState(false);
    const userDetailsData = useSelector((state: RootState) => state.userDetails.userDetails);
@@ -62,10 +64,12 @@ const RateAstrologerModal = ({ visible, onClose, onSubmit }:any) => {
               value={review}
               onChangeText={setReview}
               placeholder="Describe your experience (optional)"
-              placeholderTextColor="#999"
+              
               multiline
               maxLength={160}
               style={styles.textArea}
+                              placeholderTextColor={colorScheme === 'dark' ? '#aaa' : '#666'}
+                              cursorColor={colors.primaryColor}
             />
             
           </View>

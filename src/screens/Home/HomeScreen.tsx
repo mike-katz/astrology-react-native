@@ -12,7 +12,8 @@ import {
   Platform,
   Dimensions,
   Pressable,
-  Alert
+  Alert,
+  useColorScheme
 } from 'react-native';
 
 import MenuIcon from '../../assets/icons/MenuIcon';
@@ -79,6 +80,7 @@ const { width } = Dimensions.get('window');
 
 const HomeScreen = () =>{
 const navigation = useNavigation<any>();
+   const colorScheme = useColorScheme(); 
 const dispatch = useDispatch();
 const [menuVisible, setMenuVisible] = useState(false);
 const [activity, setActivity] = useState<boolean>(false);
@@ -166,10 +168,11 @@ const callPanditApi = () => {
         
         <TextInput
           placeholder="Search"
-          placeholderTextColor="#888"
           style={styles.input}
           editable={false}        // <-- cannot type
           pointerEvents="none"    // <-- prevents blocking touch
+          placeholderTextColor={colorScheme === 'dark' ? '#aaa' : '#666'}
+          cursorColor={colors.primaryColor}
         />
         <SearchIcon width={20} height={20} />
       </View>
@@ -369,7 +372,7 @@ const callPanditApi = () => {
 
       <View style={{ height: 130 }} />  {/* Spacer to allow for bottom buttons */}
 
-            </ScrollView>
+  </ScrollView>
 
           <View style={styles.bottomContainer}>
       
@@ -793,9 +796,9 @@ divider2: {
   },
   bottomContainer: {
     position: 'absolute',
-    bottom: Platform.OS==='android'?85:95,   // <-- PLACE ABOVE YOUR TAB BAR
+    bottom: Platform.OS==='android'?89:95,   // <-- PLACE ABOVE YOUR TAB BAR
     width: width,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
     zIndex: 999,
@@ -806,7 +809,7 @@ divider2: {
     flex: 1,
     marginRight: 5,
     paddingHorizontal:20,
-    backgroundColor: '#FBB917',
+    backgroundColor: colors.primaryColor,
     borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
@@ -823,7 +826,7 @@ divider2: {
     flexDirection:'row',
     flex: 1,
     marginLeft: 5,
-    backgroundColor: '#FBB917',
+    backgroundColor: colors.primaryColor,
     paddingVertical: 8,
     paddingHorizontal:20,
     borderRadius: 30,
@@ -839,7 +842,7 @@ divider2: {
 
   btnText: {
     color: '#FFF',
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
     fontFamily: Fonts.SemiBold,
     paddingHorizontal:10,

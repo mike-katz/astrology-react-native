@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Alert, useColorScheme } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import DatePicker from "react-native-date-picker";
 
@@ -29,6 +29,7 @@ import { useDispatch } from 'react-redux';
 const FreeChatSteps = () => {
     const navigation = useNavigation<any>();
     const dispatch = useDispatch();
+    const colorScheme = useColorScheme();
     const [step, setStep] = useState(1);
 
     // form states
@@ -216,6 +217,8 @@ const FreeChatSteps = () => {
                                 onChangeText={setName}
                                 placeholder="Your Name"
                                 style={styles.input}
+                                placeholderTextColor={colorScheme === 'dark' ? '#aaa' : '#666'}
+                                cursorColor={colors.primaryColor}
                             />
                         </View>
                     )}
@@ -340,11 +343,12 @@ const FreeChatSteps = () => {
         
                                 <TextInput
                                     placeholder="Search"
-                                    placeholderTextColor="#888"
                                     style={styles.inputSearch}
                                     editable={false}        // <-- cannot type
                                     pointerEvents="none"    // <-- prevents blocking touch
                                     value={birthPlace}
+                                    placeholderTextColor={colorScheme === 'dark' ? '#aaa' : '#666'}
+                                    cursorColor={colors.primaryColor}
                                     />
                                 <SearchIcon width={20} height={20} />
                             </TouchableOpacity>

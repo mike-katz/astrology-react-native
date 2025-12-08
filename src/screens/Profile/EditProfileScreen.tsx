@@ -10,6 +10,7 @@ import {
     Switch,
     Image,
     Platform,
+    useColorScheme,
 } from "react-native";
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import DatePicker from "react-native-date-picker";
@@ -32,6 +33,7 @@ import ProfilePicPicker from "../../utils/ProfilePicPicker";
 
 const EditProfileScreen = ({ navigation, route }: any) => {
      const dispatch = useDispatch();
+     const colorScheme = useColorScheme();
     const [activity, setActivity] = useState<boolean>(false);
     const [showDatePickerModal, setShowDatePickerModal] = useState(false);
     const [showTimePickerModal, setShowTimePickerModal] = useState(false);
@@ -233,6 +235,8 @@ const renderProfilePic = () => {
                                 value={name}
                                 onChangeText={setName}
                                 placeholder="Enter your name"
+                                  placeholderTextColor={colorScheme === 'dark' ? '#aaa' : '#666'}
+                                  cursorColor={colors.primaryColor}
                             />
                         </View>
 
@@ -331,6 +335,8 @@ const renderProfilePic = () => {
                                 value={currentAddress}
                                 onChangeText={setCurrentAddress}
                                 placeholder="Enter your current address"
+                                     placeholderTextColor={colorScheme === 'dark' ? '#aaa' : '#666'}
+                                                cursorColor={colors.primaryColor}
                             />
                         </View>
 
@@ -350,6 +356,8 @@ const renderProfilePic = () => {
                                 value={pincode}
                                 onChangeText={setPincode}
                                 placeholder="Enter your area pincode"
+                                     placeholderTextColor={colorScheme === 'dark' ? '#aaa' : '#666'}
+                                                cursorColor={colors.primaryColor}
                             />
                         </View>
                         {/* Language field */}

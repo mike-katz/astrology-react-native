@@ -7,10 +7,12 @@ import {
   StyleSheet,
   Pressable,
   TextInput,
+  useColorScheme,
 } from "react-native";
 import { colors, Fonts } from "../styles";
 
 const FeedbackDialog = ({ visible, onClose, onSubmit }:any) => {
+  const colorScheme = useColorScheme();
   const [selected, setSelected] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
 
@@ -57,11 +59,13 @@ const FeedbackDialog = ({ visible, onClose, onSubmit }:any) => {
 
               <TextInput
                 placeholder="Type here"
-                placeholderTextColor="#999"
+               
                 style={styles.feedbackBox}
                 value={feedback}
                 onChangeText={setFeedback}
                 multiline
+                placeholderTextColor={colorScheme === 'dark' ? '#aaa' : '#666'}
+                cursorColor={colors.primaryColor}
               />
             </>
           )}

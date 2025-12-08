@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, Alert, useColorScheme } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import DatePicker from "react-native-date-picker";
 
@@ -20,6 +20,7 @@ import Checkbox from '../../utils/Checkbox';
 
 const CreateKundliSteps = () => {
     const navigation = useNavigation<any>();
+     const colorScheme = useColorScheme();
     const [step, setStep] = useState(1);
 
     // form states
@@ -120,6 +121,8 @@ const CreateKundliSteps = () => {
                                 onChangeText={setName}
                                 placeholder="Your Name"
                                 style={styles.input}
+                                  placeholderTextColor={colorScheme === 'dark' ? '#aaa' : '#666'}
+                                    cursorColor={colors.primaryColor}
                             />
                         </View>
                     )}
@@ -224,11 +227,13 @@ const CreateKundliSteps = () => {
         
                                 <TextInput
                                     placeholder="Search"
-                                    placeholderTextColor="#888"
+                                    
                                     style={styles.inputSearch}
                                     editable={false}        // <-- cannot type
                                     pointerEvents="none"    // <-- prevents blocking touch
                                     value={birthPlace}
+                                    placeholderTextColor={colorScheme === 'dark' ? '#aaa' : '#666'}
+                                    cursorColor={colors.primaryColor}
                                     />
                                 <SearchIcon width={20} height={20} />
                             </TouchableOpacity>
