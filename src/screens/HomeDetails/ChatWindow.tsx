@@ -13,6 +13,7 @@ import {
     Pressable,
     Share,
     useColorScheme,
+    ImageBackground,
 } from "react-native";
 import FastImage from "react-native-fast-image";
 import Feather from "react-native-vector-icons/Feather";
@@ -28,42 +29,80 @@ import RateAstrologerModal from "../../utils/RateAstrologerModal";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { StarRating } from "../../constant/Helper";
+import { AppSpinner } from "../../utils/AppSpinner";
+import { createOrderApi, getPanditChatMessages } from "../../redux/actions/UserActions";
+import moment from "moment";
 const { width } = Dimensions.get("window");
 
 
 type Message = {
     id: string;
-    from: "user" | "agent";
-    text: string;
-    time: string;
+    sender:string;
+    message:string;
+    created_at:string;
 };
 
-const DUMMY_MESSAGES: Message[] = [
-    { id: "1", from: "agent", text: "Apki kundli mai saturn ki antar dasha chal rahi hai.", time: "08:34 PM" },
-    { id: "2", from: "agent", text: "apki personal life bahut achi rahegi 2025 se", time: "08:34 PM" },
-    { id: "3", from: "user", text: "U ended the chat", time: "08:34 PM" },
-    { id: "4", from: "agent", text: "But yes, I've noticed something very interesting in your horoscope", time: "08:35 PM" },
-    { id: "5", from: "agent", text: "Your personal life is going to take a new turn very soon", time: "08:36 PM" },
-    { id: "6", from: "agent", text: "Connect again, I'll explain everything in detail", time: "08:36 PM" },
-];
-
-export default function ChatWindow() {
+export default function ChatWindow({route}:any) {
+    const { astrologerId } = route.params;
     const navigation = useNavigation<any>();
      const colorScheme = useColorScheme();
     const [isConnected, setIsConnected] = useState(false);
     const [transport, setTransport] = useState('N/A');
     const [showRateModal, setShowRateModal] = useState(false);
-    const [messages, setMessages] = useState<Message[]>(DUMMY_MESSAGES);
     const [text, setText] = useState("");
     const flatRef = useRef<FlatList>(null);
     const [isChatEnded, setIsChatEnded] = useState(true);
     const userDetailsData = useSelector((state: RootState) => state.userDetails.userDetails);
+    const [messages1, setMessages1] = useState<any[]>([]);
+    const [refreshing, setRefreshing] = useState(false);
+    const [page, setPage] = useState(1);
+    const [activity, setActivity] = useState<boolean>(false);
+    const BG = require("../../assets/images/chat_pattern_bg.png");
     const [ratingStar, setRatingStar] = useState(0);
     const [message, setMessage] = useState("");
     const link_web  = 'https://astrotalkguruji.store';
     const avatarUri =
         "https://d1gcna0o0ldu5v.cloudfront.net/fit-in/135x135/images/77fb9922-d879-4e6c-b981-bb50813cf5c9.jpg"; // replace with your avatar or astrologer image
 
+
+  useEffect(() => {
+    callChatMessagesApi();
+  }, [page]);
+
+    const callChatMessagesApi = () => {
+      setActivity(false);
+      getPanditChatMessages(astrologerId,page).then(response => {
+        setActivity(false);
+        console.log("Chat Messages response ==>" +response);
+        const result = JSON.parse(response);
+        if(result.data.length > 0){
+            const messages = JSON.parse(result.data[0].message);
+            console.log("Chat Messages response ==>" +JSON.stringify(messages));
+            // if (result.data.results.length === 0) {
+            //   setLoadingMore(false);
+            // }
+            // Append not replace
+            setMessages1(prev => [...prev, ...(messages)]);
+        }
+
+      });
+    }
+
+    const createOrderChatApi=()=>{
+        createOrderApi(astrologerId,"chat").then(response => {
+        setActivity(false);
+        console.log("Create Order response ==>" +response);
+        const result = JSON.parse(response);
+      });
+    }
+    
+    const endOrderChatApi=()=>{
+        createOrderApi(astrologerId,"chat").then(response => {
+        setActivity(false);
+        console.log("Create Order response ==>" +response);
+        const result = JSON.parse(response);
+      });
+    }
 
         useEffect(() => {
             if (socket.connected) {
@@ -99,11 +138,11 @@ export default function ChatWindow() {
         if (!text.trim()) return;
         const newMsg: Message = {
             id: String(Date.now()),
-            from: "user",
-            text: text.trim(),
-            time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            sender:"user",
+            message:text.trim(), 
+            created_at:new Date().toISOString()
         };
-        setMessages((p) => [...p, newMsg]);
+        setMessages1((p) => [...p, newMsg])
         setText("");
         // scroll to end
         setTimeout(() => flatRef.current?.scrollToEnd({ animated: true }), 100);
@@ -111,44 +150,47 @@ export default function ChatWindow() {
 
     const endChat = () => {
         setIsChatEnded(true);
-        // placeholder: handle end chat action
-        setMessages((p) => [
+        setMessages1((p) => [
             ...p,
             {
                 id: String(Date.now()),
-                from: "system",
-                text: "You ended the chat",
-                time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                sender:"system",
+                message: "You ended the chat", 
+                created_at:new Date().toISOString()
             } as any,
-        ]);
+        ])
     };
     const startChat = () => {
   setIsChatEnded(false);
-
-  setMessages(prev => [
+  createOrderChatApi();
+          setMessages1(prev => [
             ...prev,
             {
                 id: String(Date.now()),
-                from: "system",
-                text: "You started the chat",
-                time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                sender:"system",
+                message: "You started the chat", 
+                created_at:new Date().toISOString()
             } as any,
-  ]);
+  ])
 
   setTimeout(() => flatRef.current?.scrollToEnd({ animated: true }), 100);
 };
 
     const renderMessage = ({ item }: { item: Message }) => {
-        if ((item as any).from === "system") {
+        if ((item as any).sender === "system") {
+            const formatted = moment(new Date()).format("HH:mm");
             return (
                 <View style={styles.systemRow}>
-                    <Text style={styles.systemText}>{item.text}</Text>
-                    <Text style={styles.systemTime}>{item.time}</Text>
+                    <Text style={styles.systemText}>{item.message}</Text>
+                    <Text style={styles.systemTime}>{formatted}</Text>
                 </View>
             );
         }
 
-        const isUser = item.from === "user";
+        const isUser = item.sender === "user"
+        console.log("Created at ---"+item.created_at);
+
+        const formatted = moment(item.created_at).format("HH:mm");
         return (
             <View style={[styles.msgRow, isUser ? styles.rowRight : styles.rowLeft]}>
                 {!isUser && (
@@ -156,8 +198,8 @@ export default function ChatWindow() {
                 )}
 
                 <View style={[styles.msgBubble, isUser ? styles.bubbleUser : styles.bubbleAgent]}>
-                    <Text style={[styles.msgText, isUser ? styles.msgTextUser : styles.msgTextAgent]}>{item.text}</Text>
-                    <Text style={styles.msgTime}>{item.time}</Text>
+                    <Text style={[styles.msgText, isUser ? styles.msgTextUser : styles.msgTextAgent]}>{item.message}</Text>
+                    <Text style={styles.msgTime}>{formatted}</Text>
                 </View>
 
                 {isUser && (
@@ -196,23 +238,13 @@ export default function ChatWindow() {
 
     useEffect(() => {
     flatRef.current?.scrollToEnd({ animated: true });
-    }, [messages]);
+    }, [messages1]);
 
 
     const onSubmitRating = (data: any) => {
         console.log("Review Data → ", data);
         setMessage(data.review);
         setRatingStar(data.rating);
-        /*
-            {
-            rating: 4,
-            review: "Good experience",
-            hideName: true,
-            userId: 21,
-            userName: "John",
-            profile: "img_url"
-            }
-        */
     };
 
     return (
@@ -224,7 +256,7 @@ export default function ChatWindow() {
                     <View style={styles.header}>
 
                         <TouchableOpacity style={styles.backBtn}>
-                            <BackIcon size={16} onPress={handleBack} />
+                            <BackIcon size={16} onPress={handleBack} tintColor={undefined} />
                         </TouchableOpacity>
 
                         {/* Profile Image wrapper */}
@@ -256,10 +288,11 @@ export default function ChatWindow() {
                     </View>
 
                     {/* Chat area */}
+                    <ImageBackground source={BG} style={{ flex: 1 }} resizeMode="repeat">
                     <View style={styles.chatWrapper}>
                         <FlatList
                             ref={flatRef}
-                            data={messages}
+                            data={messages1}
                             keyExtractor={(i) => i.id}
                             renderItem={renderMessage}
                             contentContainerStyle={styles.chatContent}
@@ -267,7 +300,7 @@ export default function ChatWindow() {
                         />
 
                         <Text>Status: { isConnected ? 'connected' : 'disconnected' }</Text>
-                        <Text>Transport: { transport }</Text>
+                        {/* <Text>Transport: { transport }</Text> */}
 
                         {/* Share row (centered) */}
                         {isChatEnded && (
@@ -283,9 +316,6 @@ export default function ChatWindow() {
                         <View style={styles.ratingRow}>
                             <View style={{marginRight:40}}>
                             <View style={{marginLeft:5, flexDirection: "row", alignItems: "center" }}>
-                                {/* {Array.from({ length: ratingStar }).map((_, i) => (
-                                    <Feather key={i} name="star" size={14} color={i < 4 ? colors.primaryColor : "#D1D1D1"} style={{ marginRight: 6 }} />
-                                ))} */}
                                  <StarRating size={20} rating={ratingStar} />
                             </View>
                             <Text style={styles.ratingLabel}>{message}</Text>
@@ -347,6 +377,8 @@ export default function ChatWindow() {
                        
                         </View>
                     </View>
+
+                    </ImageBackground>
                 </KeyboardAvoidingView>
 
                 <RateAstrologerModal
@@ -355,12 +387,14 @@ export default function ChatWindow() {
                     onSubmit={onSubmitRating}
                     />
 
+                <AppSpinner show={activity} />    
+
             </SafeAreaView>
         </SafeAreaProvider>
     );
 }
 
-// const BG = require("./assets/chat_pattern.png"); // optional: if you have a pattern image. else remove usage.
+
 
 const styles = StyleSheet.create({
     safe: { flex: 1, backgroundColor: "#FFF" },
@@ -397,7 +431,9 @@ const styles = StyleSheet.create({
     headerName: { fontSize: 16, fontWeight: "600" },
     headerStatus: { fontSize: 12, color: "#777" },
 
-    chatWrapper: { flex: 1, backgroundColor: "#fff" },
+    chatWrapper: { flex: 1, 
+        // backgroundColor: "#fff" 
+    },
     chatContent: { paddingHorizontal: 14, paddingTop: 14, paddingBottom: 18 },
 
     // message rows
@@ -434,7 +470,10 @@ const styles = StyleSheet.create({
     msgTextAgent: { color: "#222" ,fontFamily:Fonts.Medium},
     msgTime: { fontSize: 10, color: "#888", marginTop: 6, alignSelf: "flex-end" },
 
-    systemRow: { alignItems: "center", marginVertical: 10 },
+    systemRow: {
+         alignItems: "center", 
+         marginVertical: 10 
+        },
     systemText: { backgroundColor: "#f2f2f2", padding: 8, borderRadius: 12, color: "#444",fontFamily:Fonts.Medium },
     systemTime: { fontSize: 10, color: "#999", marginTop: 6,fontFamily:Fonts.Medium },
 

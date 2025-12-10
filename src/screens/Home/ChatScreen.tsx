@@ -45,6 +45,7 @@ import { formatKnowledge } from '../../constant/AppConst';
 import { StarRating } from '../../constant/Helper';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
+import { ServiceConstants } from '../../services/ServiceConstants';
 
 const { width } = Dimensions.get('window');
 const BANNER_HEIGHT = 55;
@@ -193,8 +194,16 @@ const ChatScreen = () => {
             {item.isverified && <RightGreenIcon width={16} height={16} />}
           </View>
           <TouchableOpacity style={styles.chatButton} onPress={() => {
-            setSelectedName(item.name);
-            setShowWallet(true)
+              if(ServiceConstants.User_ID==null){
+                navigation.reset({
+                              index: 0,
+                              routes: [{ name: 'AuthStack' }]
+                            });
+              }else{
+                  navigation.push('ChatWindow', { astrologerId: item.id }); 
+              }
+            // setSelectedName(item.name);
+            // setShowWallet(true)
           }}>
             <Text style={styles.chatBtnText}>Chat</Text>
           </TouchableOpacity>
@@ -389,7 +398,6 @@ const ChatScreen = () => {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           onEndReached={loadMore}
           onEndReachedThreshold={0.4}
-
           ListHeaderComponent={ListHeader}
           stickyHeaderIndices={[0]} // 0 = banner, 1 = filters
           // onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false })}

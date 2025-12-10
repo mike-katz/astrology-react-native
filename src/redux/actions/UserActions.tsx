@@ -173,6 +173,46 @@ export const getPanditReviewList = async (panditId:any,pagenum:any) => {
   return result;
 };
 
+export const getPanditChatMessages = async (panditId:any,pagenum:any) => {
+  const body: any = {};
+   body['panditId'] = panditId;
+   body['page'] = pagenum;
+   body['limit'] = 100;
+  const response = await getRequest({
+    url: Apis.getChatMessages,
+    header: headerWithBearer(),
+    body,
+  });
+  const result = response;
+  return result;
+};
+
+export const createOrderApi = async (panditID: any,type:string) => {
+  const body: any = {};
+  body['panditId'] = panditID;
+  body['type'] = type;
+  const response = await postRequest({ body, url: Apis.createOrder });
+    const result = JSON.parse(response);
+    if(result.success == true){
+        return response;
+    }else{
+      return response;
+    }
+  return null;
+};
+export const getOrderList = async (pagenum:any) => {
+  const body: any = {};
+   body['page'] = pagenum;
+   body['limit'] = 20;
+  const response = await getRequest({
+    url: Apis.getOrderList,
+    header: headerWithBearer(),
+    body,
+  });
+  const result = response;
+  return result;
+};
+
 const setAsyncUser = (token: any) => AsyncStorageLib.setItem('AsyncUserToken', JSON.stringify(token));
 
 export const logoutUser = (isLogout:any) => {

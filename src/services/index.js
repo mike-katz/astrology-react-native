@@ -21,6 +21,9 @@ export const Apis = {
   getPanditReviewList: `${BASE_URL}pandit/reviewList?`,
   applyFollow: `${BASE_URL}follow`,
   getFollowing: `${BASE_URL}follow?`,
+  getChatMessages: `${BASE_URL}chat/messages?`,
+  createOrder:`${BASE_URL}order/create`,
+  getOrderList:`${BASE_URL}order/list?`,
 };
 
 export const Events = {};

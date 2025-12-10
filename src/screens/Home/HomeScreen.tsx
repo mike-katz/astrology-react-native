@@ -252,7 +252,15 @@ const callPanditApi = () => {
           </View> */}
           <TouchableOpacity style={styles.astroChatBtn} onPress={()=>{
               setSelectedName(item.name);
-              navigation.push('ChatWindow');
+              if(ServiceConstants.User_ID==null){
+                navigation.reset({
+                              index: 0,
+                              routes: [{ name: 'AuthStack' }]
+                            });
+              }else{
+                  navigation.push('ChatWindow', { astrologerId: item.id }); 
+              }
+              
               // if(walletBalance==0){
               //   setShowWallet(true);
               // }else{

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   FlatList,
   Dimensions,
   ScrollView,
+  RefreshControl,
 } from "react-native";
 import FastImage from "react-native-fast-image";
 import Feather from "react-native-vector-icons/Feather";
@@ -14,7 +15,8 @@ import { useNavigation } from "@react-navigation/native";
 import { AppSpinner } from "../../utils/AppSpinner";
 import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
 import { colors, Fonts } from "../../styles";
-
+import { getOrderList } from "../../redux/actions/UserActions";
+import moment from "moment";
 const { width } = Dimensions.get("window");
 
 // Example single item (replace with real data)
@@ -84,6 +86,11 @@ export default function OrderHistoryScreen() {
   const [activeWalletTab, setWalletActiveTab] = useState<'wallet' | 'payment'>('wallet');
   const [activeRemedyTab, setRemedytActiveTab] = useState<'suggested' | 'purchased' | 'remedychat'>('remedychat');
 
+  const [orders, setOrders] = useState<any[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+
   const tabs = useMemo(
     () => [
       { id: "wallet", label: "Wallet" },
@@ -101,27 +108,62 @@ export default function OrderHistoryScreen() {
     []
   );
 
+    const callOrderListApi = () => {
+      setActivity(false);
+      getOrderList(page).then(response => {
+        setActivity(false);
+        console.log("Order List response ==>" + response+"---Page--"+page)
+        const result = JSON.parse(response);
+        if (result.data.results.length === 0 || result.data.results.length < 20) {
+          setLoadingMore(false);
+        }
+        // Append not replace
+        setOrders(prev => [...prev, ...(result.data.results)]);
+      });
+    }
+  
+    const onRefresh = useCallback(() => {
+      setRefreshing(true);
+      setOrders([]);
+      setTimeout(() => {
+        setPage(1);
+        setRefreshing(false);
+      }, 900);
+    }, []);
+
+    const loadMore = () => {
+    if (!loadingMore) {
+      setPage(prev => prev + 1);
+    }
+  };
+    useEffect(() => {
+      callOrderListApi();
+    }, [page]);
+
   const handleBack = () => navigation.goBack?.();
 
-  const renderItem = ({ item }: any) => (
+  const renderItem = ({ item }: any) => {
+    const formatted = moment(item.created_at).format("DD-MMM-YYYY");
+    return(
     <TouchableOpacity style={styles.row}>
       <View style={styles.avatarWrap}>
-        <FastImage style={styles.avatar} source={{ uri: item.avatar }} />
+        <FastImage style={styles.avatar} source={{ uri: item.profile }} />
         {item.online && <View style={styles.onlineDot} />}
       </View>
 
       <View style={styles.body}>
-        <Text style={styles.name}>{item.name}</Text>
+        <Text style={styles.name}>{item.name || 'Astrologer'}</Text>
         <Text style={styles.message} numberOfLines={1}>
-          {item.message}
+          {item.lastmessage}
         </Text>
+        <Text>{item.status}</Text>
       </View>
 
       <View style={styles.right}>
-        <Text style={styles.date}>{item.date}</Text>
+        <Text style={styles.date}>{formatted}</Text>
       </View>
     </TouchableOpacity>
-  );
+  )};
 
   return (
         <SafeAreaProvider>
@@ -200,6 +242,7 @@ export default function OrderHistoryScreen() {
                 keyExtractor={(item) => item.id}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingVertical: 10 }}
+    
                 renderItem={({ item }) => (
                     <View style={styles.card}>
                     <View style={styles.cardRow}>
@@ -222,6 +265,7 @@ export default function OrderHistoryScreen() {
                     </Text>
                     </View>
                 }
+                ListFooterComponent={() => (loadingMore ? <View style={styles.loadingMore}><Text>Loading...</Text></View> : null)}
                 />}
 
 
@@ -265,11 +309,15 @@ export default function OrderHistoryScreen() {
           </View>
         ) : activeTab === "orders" && (
           <FlatList
-            data={SAMPLE_ORDERS}
-            keyExtractor={(i) => i.id}
+            data={orders}
+            keyExtractor={(item, index) => `${item.id || 'no-id'}_${index}`}
             renderItem={renderItem}
             contentContainerStyle={styles.list}
             showsVerticalScrollIndicator={false}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+            onEndReached={loadMore}
+            onEndReachedThreshold={0.4}
+            ListFooterComponent={() => (loadingMore ? <View style={styles.loadingMore}><Text>Loading...</Text></View> : null)}
           />
         )}
       </View>
@@ -433,7 +481,8 @@ const styles = StyleSheet.create({
   right: {
     width: 88,
     alignItems: "flex-end",
-    justifyContent: "center",
+    // justifyContent: "center",
+    top:0
   },
   date: {
     fontSize: 12,
@@ -604,4 +653,5 @@ const styles = StyleSheet.create({
     marginRight: 6,
     fontFamily:Fonts.Medium
   },
+  loadingMore: { padding: 16, alignItems: 'center', justifyContent: 'center' },
 });
