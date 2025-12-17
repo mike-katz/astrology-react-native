@@ -49,32 +49,15 @@ import { decryptData, secretKey } from '../../services/requests';
 import { useSocket } from "../../socket/SocketProvider";
 import WaitlistJoinedModal from '../../utils/WaitlistJoinedModal';
 import { socket } from '../../../socket';
-import IncomingChatRequest from '../../utils/IncomingChatRequest';
 import IncomingChatModal from '../../utils/IncomingChatModal';
 import YellowWaitlistSheet from '../../utils/YellowWaitlistSheet';
+import { removeWaitListItem, setWaitList,updateWaitListItem } from '../../redux/slices/waitListSlice';
 
 const features = [
   {id: 1, title: 'Daily Horoscope', icon: DailyHoroIcon },
   { id:2,title: 'Free Kundali', icon: FreeKundliIcon },
   {id:3, title: 'Kundali Matching', icon: KundliMatchIcon },
   { id:4,title: 'Free Chat', icon: FreeChatIcon },
-];
-
-const astrologers2 = [
-  {
-    id: "1",
-    name: "Naresh13",
-    waitTime: "15-31 mins",
-    price: "₹5/min",
-    image: "https://randomuser.me/api/portraits/men/32.jpg",
-  },
-  {
-    id: "2",
-    name: "Vaamika",
-    waitTime: "Wait time - Almost there!",
-    price: "₹23/min",
-    image: "https://randomuser.me/api/portraits/women/44.jpg",
-  },
 ];
 
 const remedies = [
@@ -98,7 +81,7 @@ const { width } = Dimensions.get('window');
 
 const HomeScreen = () =>{
 const navigation = useNavigation<any>();
-   const colorScheme = useColorScheme(); 
+const colorScheme = useColorScheme(); 
 const dispatch = useDispatch();
 const [menuVisible, setMenuVisible] = useState(false);
 const [activity, setActivity] = useState<boolean>(false);
@@ -107,12 +90,13 @@ const [showWallet, setShowWallet] = useState(false); //For Wallet
 const [selectedName, setSelectedName] = useState<string>(""); 
 const [walletBalance, setWalletBalance] = useState<number>(0);
  const userDetailsData = useSelector((state: RootState) => state.userDetails.userDetails);
+ const astroWaitlist = useSelector((state: RootState) => state.waitList.waitlist);
  const [page, setPage] = useState(1); 
  const [visibleWaitList, setVisibleWaitList] = useState<boolean>(false);
- const [yellowWaitListV, setYellowWaitList] = useState<boolean>(true);
+ const [yellowWaitListV, setYellowWaitList] = useState<boolean>(false);
  const [incomingVisible, setIncomingVisible] = useState(false);
  const [panditAcceptedData, setPanditAcceptedData] = useState<any>([]);
- const {isConnected, connectSocket } = useSocket();
+
 useEffect(() => {
   callPanditApi();
   if(ServiceConstants.User_ID!=null){
@@ -120,21 +104,38 @@ useEffect(() => {
   }
 }, []);
 
+
 useEffect(() => {
   if(ServiceConstants.User_ID!=null){
     //  Alert.alert("Home User Id is ...."+ServiceConstants.User_ID);
      dispatch(setUserDetails({id:ServiceConstants.User_ID}));
     socket.on(`wait_for_pandit`, (msg) => {
         // Alert.alert("wait_for_pandit--" + JSON.stringify(msg));
+        console.log("wait_for_pandit--" + JSON.stringify(msg));
         setVisibleWaitList(true);
+        setYellowWaitList(true);
+        
+        dispatch(setWaitList(msg));
+        
     });
     socket.on(`pandit_accepted`, (msg) => {
-         Alert.alert("pandit_accepted--" + JSON.stringify(msg));
+        //  Alert.alert("pandit_accepted--" + JSON.stringify(msg));
          if(visibleWaitList)
         setVisibleWaitList(false);
 
-        setPanditAcceptedData(msg);
-        setIncomingVisible(true);
+         setTimeout(()=>{
+            setPanditAcceptedData(msg);
+            setIncomingVisible(true);
+         },1000);
+ 
+    });
+
+    socket.on(`user_continue_order`, (msg) => {
+        //  Alert.alert("user_continue_order--" + JSON.stringify(msg));
+        setYellowWaitList(true);
+
+        dispatch(setWaitList(msg));
+
     });
   }
 }, []);
@@ -200,7 +201,7 @@ const callPanditApi = () => {
   }
 
       const callChatCancelApi=(chatOrderId:any)=>{
-        setActivity(true);
+        setActivity(false);
         chatCancelOrderApi(chatOrderId).then(response => {
         setActivity(false);
         console.log("Cancel Order response ==>" +response);
@@ -244,7 +245,7 @@ const callPanditApi = () => {
       });
     }
       const callChatAcceptApi=(chatOrderId:any,panditId:any)=>{
-        setActivity(true);
+        setActivity(false);
         chatAcceptOrderApi(chatOrderId).then(response => {
         setActivity(false);
         console.log("Accept Order response ==>" +response);
@@ -279,27 +280,28 @@ const callPanditApi = () => {
     }
 
     const handleCancelWait = (item: any) => {
-  Alert.alert(
-    "Cancel Request",
-    `Cancel chat with ${item.name}?`,
-    [
-      { text: "No" },
-      {
-        text: "Yes",
-        onPress: () => {
-          callChatCancelApi(item.orderId);
+      if(item.is_accept){
+            navigation.push('ChatWindow', {
+              astrologerId:item.panditId,
+              orderId: item.orderId,
+            });
+      }else{
+          Alert.alert(
+            "Cancel Request",
+            `Cancel chat with ${item.name}?`,
+            [
+              { text: "No" },
+              {
+                text: "Yes",
+                onPress: () => {
+                  callChatCancelApi(item.orderId);
+                  dispatch(removeWaitListItem(item.id));
+                },
+              },
+            ]
+          );
+      }
 
-          // setWaitlistData((prev) =>
-          //   prev.filter((p) => p.id !== item.id)
-          // );
-
-          // if (waitlistData.length <= 1) {
-          //   setWaitlistVisible(false);
-          // }
-        },
-      },
-    ]
-  );
 };
 
 
@@ -445,7 +447,6 @@ const callPanditApi = () => {
                             });
               }else{
                 createOrderChatApi(item.id);
-                  // navigation.push('ChatWindow', { astrologerId: item.id }); 
               }
               
               // if(walletBalance==0){
@@ -604,10 +605,12 @@ const callPanditApi = () => {
 
           <SlideMenu visible={menuVisible} onClose={() => setMenuVisible(false)} />
 
+           {visibleWaitList && astroWaitlist.length > 0 &&  
             <WaitlistJoinedModal
+              data={astroWaitlist}
               visible={visibleWaitList}
               onClose={() => setVisibleWaitList(false)}
-            />
+            />}
 
               {incomingVisible && <IncomingChatModal
                 visible={incomingVisible}
@@ -623,12 +626,16 @@ const callPanditApi = () => {
                     console.warn("Pandit details not available yet");
                     return;
                   }
-                  Alert.alert("Pandit ID :"+panditDetails.id+"\n"+panditDetails.orderId);
-                  // navigation.push('ChatWindow', {
-                  //   astrologerId: panditDetails.id,
-                  //   orderId: panditDetails.orderId,
-                  // });
-                  callChatAcceptApi(panditDetails.orderId,panditDetails.id);
+                  Alert.alert("Pandit ID :"+panditDetails.panditId+"\n"+panditDetails.orderId);
+                  callChatAcceptApi(panditDetails.orderId,panditDetails.panditId);
+                  dispatch(
+                    updateWaitListItem({
+                      id: panditDetails.id,
+                      changes: {
+                        is_accept: true,
+                      },
+                    })
+                  );
                 }}
                 onReject={() => {
                   setIncomingVisible(false);
@@ -641,22 +648,32 @@ const callPanditApi = () => {
                     console.warn("Pandit details not available yet");
                     return;
                   }
-                  Alert.alert("Pandit ID :"+panditDetails.id+"\n"+panditDetails.orderId);
-                  // navigation.push('ChatWindow', {
-                  //   astrologerId: panditDetails.id,
-                  //   orderId: panditDetails.orderId,
-                  // });
+                  // Alert.alert("Pandit ID :"+panditDetails.panditId+"\n"+panditDetails.orderId);
+                   Alert.alert(
+                      "Cancel Request",
+                      `Are you sure you want to reject this chat?`,
+                      [
+                        { text: "No" },
+                        {
+                          text: "Yes",
+                          onPress: () => {
+                          callChatCancelApi(panditDetails.orderId);
+                          dispatch(removeWaitListItem(panditDetails.id));
+                          },
+                        },
+                      ]
+                    );
 
-                  callChatCancelApi(panditDetails.orderId);
+                  
                 }}
               />}
 
-             {/* {yellowWaitListV &&  */}
+             {yellowWaitListV && astroWaitlist.length > 0 &&
              <YellowWaitlistSheet
-                data={astrologers2}
+                data={astroWaitlist}
                 onCancel={handleCancelWait}
               />
-              {/* // } */}
+          }
 
              <AppSpinner show={activity} />
         </SafeAreaView>

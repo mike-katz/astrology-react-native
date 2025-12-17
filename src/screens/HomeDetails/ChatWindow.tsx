@@ -81,9 +81,6 @@ export default function ChatWindow({ route }: any) {
     const [showAttachment, setShowAttachment] = useState(false);
     const [selectedImages, setSelectedImages] = useState<any[]>([]);
     const DEFAULT_AVATAR = require('../../assets/images/AquariusProfilePic.png');
-    const dummyUri =
-        "https://d1gcna0o0ldu5v.cloudfront.net/fit-in/135x135/images/77fb9922-d879-4e6c-b981-bb50813cf5c9.jpg"; // replace with your avatar or astrologer image
-
     const [typingUser, setTypingUser] = useState(false);
     //Audio
     const [isRecording, setIsRecording] = useState(false);
@@ -91,9 +88,6 @@ export default function ChatWindow({ route }: any) {
     const [audioPath, setAudioPath] = useState('');
     const [paused, setPaused] = useState(false);
   
-
-
-
     const loadMore = () => {
         if (!loadingMore) {
             setPage(prev => prev + 1);
@@ -146,6 +140,7 @@ export default function ChatWindow({ route }: any) {
     }, []);
 
     const callChatDetailsApi = () => {
+        // Alert.alert("ChatWindow Pandit ID="+astrologerId);
         getChatDetails(astrologerId).then(response => {
             setActivity(false);
             console.log("Chat Details response ==>" + (response));
@@ -227,22 +222,20 @@ export default function ChatWindow({ route }: any) {
     };
 
     useEffect(() => {
-        if (isConnected) {
-            onConnect();
-        }
-        function onConnect() {
-            setIsConnected(true);
-            console.log('socket connected', socket.id);
-   
-            socket.emit(`go_online`, { orderId: orderId, from_id: ServiceConstants.User_ID, to_id: astrologerId, type: "user" });
+         console.log("🔌 Connecting socket from ChatWindow...");
+    
+       if(!socket.connected){
+            socket.connect();
+            socket.on('connect', onConnect);
         }
 
-        function onDisconnect() {
-            setIsConnected(false);
-            console.log('socket disconnected', socket.id);
-        }
-
-        socket.on('connect', onConnect);
+        setIsConnected(true);
+        socket.emit("go_online", {
+            orderId,
+            from_id: ServiceConstants.User_ID,
+            to_id: astrologerId,
+            type: "user",
+        });
         socket.on(`go_online`, (data) => {
             console.log("go online--" + JSON.stringify(data));
         });
@@ -275,12 +268,21 @@ export default function ChatWindow({ route }: any) {
             }
         });
 
-        socket.on('disconnect', onDisconnect);
+        function onConnect() {
+            setIsConnected(true);
+            console.log('socket connected', socket.id);
+            socket.emit(`go_online`, { orderId: orderId, from_id: ServiceConstants.User_ID, to_id: astrologerId, type: "user" });
+        }
+
+        // function onDisconnect() {
+        //     setIsConnected(false);
+        //     console.log('socket disconnected', socket.id);
+        // }
 
         return () => {
             console.log('🔥 ChatWindow unmount → disconnect socket');
-            socket.off('connect', onConnect);
-            socket.off('disconnect', onDisconnect);
+            // socket.off('connect', onConnect);
+            // socket.off('disconnect', onDisconnect);
             socket.off(`typing`);
             socket.off(`stop_typing`);
             socket.off(`receive_message`);

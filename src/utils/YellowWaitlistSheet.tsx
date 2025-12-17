@@ -11,11 +11,13 @@ import {
   PanResponder,
   Alert,
 } from "react-native";
+import FastImage from "react-native-fast-image";
 import Feather from "react-native-vector-icons/Feather";
+import { Fonts } from "../styles";
 
 const { height } = Dimensions.get("window");
 
-const COLLAPSED = 80;
+const COLLAPSED = 20;
 const EXPANDED = 260;
 type Props = {
   data: any[];
@@ -31,8 +33,8 @@ export default function YellowWaitlistSheet({
   const [isOpenArrow, setIsOpenArrow] = React.useState(false);
 
   useEffect(() => {
-    open(); 
-    }, []);
+    open();
+  }, []);
 
   const toggleSheet = () => {
     Animated.spring(translateY, {
@@ -71,27 +73,26 @@ export default function YellowWaitlistSheet({
       useNativeDriver: true,
     }).start();
     isOpen.current = false;
-     setIsOpenArrow(false);
+    setIsOpenArrow(false);
   };
 
   const renderItem = ({ item }: any) => (
     <View style={styles.row}>
-      <Image source={{ uri: item.image }} style={styles.avatar} />
-
+      <FastImage source={{ uri: item.profile }} style={styles.avatar} />
       <View style={{ flex: 1 }}>
         <Text style={styles.name}>{item.name}</Text>
         <Text style={styles.subText}>
-          {item.price} · (Chat)
+          ₹{item.rate}/min. (Chat)
         </Text>
         <Text style={styles.subText}>
-         {item.waitTime}
+          {item.duration} mins.
         </Text>
       </View>
 
-      <TouchableOpacity style={{alignItems:'center'}} onPress={() => onCancel(item)}>
-        <Feather name="x-circle" size={22} color="#999" />
-            <Text style={styles.subText}>
-          Cancel
+      <TouchableOpacity style={{ alignItems: 'center',borderColor:'gray',borderRadius:10,borderWidth:1,paddingHorizontal:10,paddingVertical:5 }} onPress={() => onCancel(item)}>
+        {/* {item.is_accept?null:<Feather name="x-circle" size={22} color="#999" />} */}
+        <Text style={styles.subText}>
+          {item.is_accept?"Chat":"Cancel"}
         </Text>
       </TouchableOpacity>
     </View>
@@ -124,25 +125,25 @@ export default function YellowWaitlistSheet({
 const styles = StyleSheet.create({
   container: {
     position: "absolute",
-    bottom: 20,
+    bottom: 80,
     height: EXPANDED,
     width: "100%",
     backgroundColor: "#FFF6C7",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     elevation: 12,
-    zIndex: 999,   
+    zIndex: 999,
   },
 
   arrow: {
-    alignSelf:'center',
+    alignSelf: 'center',
     alignItems: "center",
     paddingVertical: 6,
-    marginTop:-20,
-    backgroundColor:"#FFF6C7",
-    borderRadius:25,
-    width:50,
-    height:40
+    marginTop: -20,
+    backgroundColor: "#FFF6C7",
+    borderRadius: 25,
+    width: 50,
+    height: 40
   },
 
   row: {
@@ -150,8 +151,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderBottomColor:'gray',
-    borderBottomWidth:.4
+    borderBottomColor: 'gray',
+    borderBottomWidth: .4
   },
 
   avatar: {
@@ -159,16 +160,20 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     marginRight: 12,
+    borderWidth: 1.5,
+    borderColor: "#F3E58C",
   },
 
   name: {
     fontSize: 14,
     fontWeight: "600",
+    fontFamily:Fonts.Medium
   },
 
   subText: {
     fontSize: 12,
     color: "#666",
     marginTop: 2,
+    fontFamily:Fonts.Medium
   },
 });

@@ -40,12 +40,14 @@ import RemediesIcon from '../../assets/icons/RemediesIcon';
 import ParentsIcon from '../../assets/icons/ParentsIcon';
 import { SlideMenu } from './SlideMenu';
 import { AppSpinner } from '../../utils/AppSpinner';
-import { getPandit } from '../../redux/actions/UserActions';
+import { createOrderApi, getPandit } from '../../redux/actions/UserActions';
 import { formatKnowledge } from '../../constant/AppConst';
 import { StarRating } from '../../constant/Helper';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
 import { ServiceConstants } from '../../services/ServiceConstants';
+import { CustomDialogManager2 } from '../../utils/CustomDialog2';
+import { decryptData, secretKey } from '../../services/requests';
 
 const { width } = Dimensions.get('window');
 const BANNER_HEIGHT = 55;
@@ -152,6 +154,45 @@ const ChatScreen = () => {
     }
   };
 
+     const createOrderChatApi=(astrologerId:any)=>{
+          createOrderApi(astrologerId,"chat").then(response => {
+          setActivity(false);
+          console.log("Create Order response ==>" +response);
+          const result = JSON.parse(response);
+          console.log("Create Order response222 ==>" +JSON.stringify(result.success));
+          if(result.success===true){
+            // navigation.push('ChatWindow', { astrologerId: astrologerId,orderId:result.data.orderId }); 
+          }else{
+              const result2 = decryptData(result.error,secretKey);
+              const result3 = JSON.parse(result2);
+              console.log("Create Messages Error response ==>" +JSON.stringify(result3));
+            
+              CustomDialogManager2.show({
+                  title: 'Alert',
+                  message: result3.message,
+                  type:2,
+                  buttons: [
+                    {
+                      text: 'Ok',
+                      onPress: () => {
+                          if(ServiceConstants.User_ID==null){
+                            navigation.reset({
+                                          index: 0,
+                                          routes: [{ name: 'AuthStack' }]
+                                        });
+                          }else{
+                            navigation.push("OrderHistoryScreen");
+                          }         
+                      },
+                      style: 'default',
+                    },
+                  ],
+                });
+          }
+          
+        });
+      }
+
   // --- CAROUSEL state ---
   const carouselRef = useRef<Animated.ScrollView | null>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
@@ -194,15 +235,16 @@ const ChatScreen = () => {
             {item.isverified && <RightGreenIcon width={16} height={16} />}
           </View>
           <TouchableOpacity style={styles.chatButton} onPress={() => {
+            setSelectedName(item.name);
               if(ServiceConstants.User_ID==null){
                 navigation.reset({
                               index: 0,
                               routes: [{ name: 'AuthStack' }]
                             });
               }else{
-                  navigation.push('ChatWindow', { astrologerId: item.id }); 
+                   createOrderChatApi(item.id); 
               }
-            // setSelectedName(item.name);
+            
             // setShowWallet(true)
           }}>
             <Text style={styles.chatBtnText}>Chat</Text>

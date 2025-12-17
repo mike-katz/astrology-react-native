@@ -8,13 +8,20 @@ import {
   Image,
 } from "react-native";
 import Feather from "react-native-vector-icons/Feather";
+import { useSelector } from "react-redux";
+import { RootState } from "../redux/store";
+import FastImage from "react-native-fast-image";
 
 type Props = {
   visible: boolean;
+   data: any; 
   onClose: () => void;
 };
 
-export default function WaitlistJoinedModal({ visible, onClose }: Props) {
+export default function WaitlistJoinedModal({ visible,data, onClose }: Props) {
+  const userDetailsData = useSelector((state: RootState) => state.userDetails.userDetails);
+  const panditDetails = Array.isArray(data) && data.length > 0 ? data[0] : null;
+  console.log("Waitlist Joined Modal =="+panditDetails);
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
@@ -32,12 +39,9 @@ export default function WaitlistJoinedModal({ visible, onClose }: Props) {
             {/* User */}
             <View style={styles.avatarBlock}>
               <View style={styles.avatarWrapper}>
-                <Image
-                  source={require('../assets/icons/astrologer_logo.png')} // replace
-                  style={styles.avatar}
-                />
+              <FastImage source={{ uri: panditDetails.profile }} style={styles.avatar} />
               </View>
-              <Text style={styles.name}>Hardik</Text>
+              <Text style={styles.name}>{panditDetails.name}</Text>
             </View>
 
             {/* Chat Icon */}
@@ -48,12 +52,9 @@ export default function WaitlistJoinedModal({ visible, onClose }: Props) {
             {/* Astrologer */}
             <View style={styles.avatarBlock}>
               <View style={styles.avatarWrapper}>
-                <Image
-                  source={require('../assets/icons/astrologer_logo.png')} // replace
-                  style={styles.avatar}
-                />
+                <FastImage source={{ uri: userDetailsData.profile }} style={styles.avatar} />
               </View>
-              <Text style={styles.name}>Vaamika</Text>
+              <Text style={styles.name}>{userDetailsData.name}</Text>
             </View>
           </View>
 

@@ -1,19 +1,24 @@
 import React from "react";
-import { Modal, Text,StyleSheet, View ,  Image,
-  TouchableOpacity,} from "react-native";
+import {
+  Modal, Text, StyleSheet, View, Image,
+  TouchableOpacity,
+} from "react-native";
 import IncomingChatRequest from "./IncomingChatRequest";
-import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
+import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import Feather from "react-native-vector-icons/Feather";
 import { Fonts } from "../styles";
+import { useSelector } from "react-redux";
+import { RootState } from "../redux/store";
+import FastImage from "react-native-fast-image";
 type Props = {
   visible: boolean;
-  data: any; 
+  data: any;
   onAccept: () => void;
   onReject: () => void;
 };
 
-const IncomingChatModal = ({ visible,  data, onAccept, onReject }: Props) => {
-    const panditDetails = Array.isArray(data) && data.length > 0 ? data[0] : null;
+const IncomingChatModal = ({ visible, data, onAccept, onReject }: Props) => {
+  const panditDetails = Array.isArray(data) && data.length > 0 ? data[0] : null;
   return (
     <Modal
       visible={visible}
@@ -21,53 +26,44 @@ const IncomingChatModal = ({ visible,  data, onAccept, onReject }: Props) => {
       presentationStyle="fullScreen"
       statusBarTranslucent
     >
-      {/* <View style={styles.container}> */}
-        {/* <IncomingChatRequest
-          onAccept={onAccept}
-          onReject={onReject}
-        /> */}
-      {/* </View> */}
-              <SafeAreaView style={styles.container}>
-                  <View style={{position:'absolute',top:0,marginTop:'10%',alignItems:'center'}}>
-            {/* Header Text */}
-            <Text style={styles.incomingText}>Incoming Chat request from</Text>
-      
-            {/* Brand */}
-            <View style={styles.brandRow}>
-              <Image
-                source={require("../assets/icons/astrologer_logo.png")} // yellow icon
-                style={styles.brandIcon}
-              />
-              <Text style={styles.brandText}>Astrotalk</Text>
-            </View>
-            </View>
-      
-            {/* Avatar */}
-            <View style={{alignItems:'center',marginBottom:'40%'}}>
-              <View style={styles.avatarWrapper}>
-                  <Image
-                  source={require("../assets/icons/astrologer_logo.png")} // astrologer image
-                  style={styles.avatar}
-                  />
-              </View>
-      
-              {/* Name */}
-              <Text style={styles.name}>{panditDetails.name}</Text>
-             </View>
-      
-              <View style={{position:'absolute',bottom:0,marginBottom:'20%',alignItems:'center'}}>
-            {/* Start Chat Button */}
-            <TouchableOpacity style={styles.startBtn} onPress={onAccept}>
-              <Feather name="message-circle" size={20} color="#fff" />
-              <Text style={styles.startBtnText}>Start chat</Text>
-            </TouchableOpacity>
-      
-            {/* Reject */}
-            <TouchableOpacity onPress={onReject}>
-              <Text style={styles.rejectText}>Reject Chat Request</Text>
-            </TouchableOpacity>
-            </View>
-                 </SafeAreaView>
+      <SafeAreaView style={styles.container}>
+        <View style={{ position: 'absolute', top: 0, marginTop: '10%', alignItems: 'center' }}>
+          {/* Header Text */}
+          <Text style={styles.incomingText}>Incoming Chat request from</Text>
+
+          {/* Brand */}
+          <View style={styles.brandRow}>
+            <Image
+              source={require("../assets/icons/astrologer_logo.png")} // yellow icon
+              style={styles.brandIcon}
+            />
+            <Text style={styles.brandText}>Astrotalk</Text>
+          </View>
+        </View>
+
+        {/* Avatar */}
+        <View style={{ alignItems: 'center', marginBottom: '40%' }}>
+          <View style={styles.avatarWrapper}>
+            <FastImage source={{ uri: panditDetails.profile }} style={styles.avatar} />
+          </View>
+
+          {/* Name */}
+          <Text style={styles.name}>{panditDetails.name}</Text>
+        </View>
+
+        <View style={{ position: 'absolute', bottom: 0, marginBottom: '20%', alignItems: 'center' }}>
+          {/* Start Chat Button */}
+          <TouchableOpacity style={styles.startBtn} onPress={() => onAccept()}>
+            <Feather name="message-circle" size={20} color="#fff" />
+            <Text style={styles.startBtnText}>Start chat</Text>
+          </TouchableOpacity>
+
+          {/* Reject */}
+          <TouchableOpacity onPress={onReject}>
+            <Text style={styles.rejectText}>Reject Chat Request</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     </Modal>
   );
 };
@@ -75,10 +71,10 @@ const IncomingChatModal = ({ visible,  data, onAccept, onReject }: Props) => {
 export default IncomingChatModal;
 
 const styles = StyleSheet.create({
-container: {
+  container: {
     flex: 1,
     backgroundColor: "#fff",
-    justifyContent:'center',
+    justifyContent: 'center',
     alignItems: "center",
     paddingTop: 40
   },
@@ -87,7 +83,7 @@ container: {
     fontSize: 16,
     color: "#000",
     marginTop: 30,
-    fontFamily:Fonts.SemiBold
+    fontFamily: Fonts.SemiBold
   },
 
   brandRow: {
@@ -106,11 +102,10 @@ container: {
     fontSize: 22,
     fontWeight: "600",
     color: "#000",
-    fontFamily:Fonts.SemiBold
+    fontFamily: Fonts.SemiBold
   },
 
   avatarWrapper: {
-    // marginTop: 70,
     width: 130,
     height: 130,
     borderRadius: 65,
@@ -131,7 +126,7 @@ container: {
     fontSize: 22,
     fontWeight: "600",
     color: "#000",
-    fontFamily:Fonts.SemiBold
+    fontFamily: Fonts.SemiBold
   },
 
   startBtn: {
@@ -149,7 +144,7 @@ container: {
     fontSize: 18,
     fontWeight: "600",
     marginLeft: 10,
-    fontFamily:Fonts.SemiBold
+    fontFamily: Fonts.SemiBold
   },
 
   rejectText: {
@@ -157,6 +152,6 @@ container: {
     fontSize: 14,
     color: "#E53935",
     fontWeight: "500",
-    fontFamily:Fonts.SemiBold
+    fontFamily: Fonts.SemiBold
   },
 });

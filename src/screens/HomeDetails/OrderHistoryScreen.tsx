@@ -8,16 +8,21 @@ import {
   Dimensions,
   ScrollView,
   RefreshControl,
+  Alert,
 } from "react-native";
 import FastImage from "react-native-fast-image";
 import Feather from "react-native-vector-icons/Feather";
 import { useNavigation } from "@react-navigation/native";
 import { AppSpinner } from "../../utils/AppSpinner";
-import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
+import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { colors, Fonts } from "../../styles";
-import { getOrderList } from "../../redux/actions/UserActions";
+import { chatAcceptOrderApi, chatCancelOrderApi, getOrderList } from "../../redux/actions/UserActions";
 import moment from "moment";
 import { BackIcon } from "../../assets/icons";
+import { CustomDialogManager2 } from "../../utils/CustomDialog2";
+import { decryptData, secretKey } from "../../services/requests";
+import { useDispatch } from "react-redux";
+import { removeWaitListItem, updateWaitListItem } from "../../redux/slices/waitListSlice";
 const { width } = Dimensions.get("window");
 
 // Example single item (replace with real data)
@@ -48,7 +53,7 @@ const walletData = [
     date: '01 Dec 25, 05:12 PM',
     hash: '#CHAT_CALL293889182',
   },
-    {
+  {
     id: '3',
     title: 'Chat with Astrologer for 2 minutes',
     amount: '+₹ 0.0',
@@ -62,7 +67,7 @@ const walletData = [
     date: '01 Dec 25, 05:12 PM',
     hash: '#CHAT_CALL293889182',
   },
-    {
+  {
     id: '5',
     title: 'Chat with Astrologer for 2 minutes',
     amount: '+₹ 0.0',
@@ -91,6 +96,7 @@ export default function OrderHistoryScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
+  const dispatch = useDispatch();
 
   const tabs = useMemo(
     () => [
@@ -100,7 +106,7 @@ export default function OrderHistoryScreen() {
     ],
     []
   );
-    const tabsRemedy = useMemo(
+  const tabsRemedy = useMemo(
     () => [
       { id: "suggested", label: "Suggested" },
       { id: "purchased", label: "Purchased" },
@@ -109,260 +115,412 @@ export default function OrderHistoryScreen() {
     []
   );
 
-    const callOrderListApi = () => {
+  const callOrderListApi = () => {
+    setActivity(false);
+    getOrderList(page).then(response => {
       setActivity(false);
-      getOrderList(page).then(response => {
-        setActivity(false);
-        console.log("Order List response ==>" + response+"---Page--"+page)
-        const result = JSON.parse(response);
-        if (result.data.results.length === 0 || result.data.results.length < 20) {
-          setLoadingMore(false);
-        }
-        setRefreshing(false);
-        // Append not replace
-        setOrders(prev => [...prev, ...(result.data.results)]);
-      });
-    }
-  
-    const onRefresh = useCallback(() => {
-      setRefreshing(true);
-      setOrders([]);
-      setTimeout(() => {
-        if(page===1){
-          callOrderListApi();
-        }else{
-          setPage(1);
-        }
-        setRefreshing(false);
-      }, 0);
-    }, []);
+      console.log("Order List response ==>" + response + "---Page--" + page)
+      const result = JSON.parse(response);
+      if (result.data.results.length === 0 || result.data.results.length < 20) {
+        setLoadingMore(false);
+      }
+      setRefreshing(false);
+      // Append not replace
+      setOrders(prev => [...prev, ...(result.data.results)]);
+    });
+  }
 
-    const loadMore = () => {
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setOrders([]);
+    setTimeout(() => {
+      if (page === 1) {
+        callOrderListApi();
+      } else {
+        setPage(1);
+      }
+      setRefreshing(false);
+    }, 0);
+  }, []);
+
+  const loadMore = () => {
     if (!loadingMore) {
       setPage(prev => prev + 1);
     }
   };
-    useEffect(() => {
-      callOrderListApi();
-    }, [page]);
+  useEffect(() => {
+    callOrderListApi();
+  }, [page]);
 
   const handleBack = () => navigation.goBack?.();
 
+  const updateOrderItem = (id: any, changes: Partial<any>) => {
+  setOrders(prev =>
+    prev.map(item =>
+      item.id === id
+        ? { ...item, ...changes }
+        : item
+    )
+  );
+};
+
+  const callChatCancelApi = (chatOrderId: any) => {
+    setActivity(false);
+    chatCancelOrderApi(chatOrderId).then(response => {
+      setActivity(false);
+      console.log("Cancel Order response ==>" + response);
+      const result = JSON.parse(response);
+      if (result.success === true) {
+        console.log("Cancel Order Successfully ==>" + JSON.stringify(result));
+        CustomDialogManager2.show({
+          title: 'Alert',
+          message: "Your chat request has been canceled successfully.",
+          type: 2,
+          buttons: [
+            {
+              text: 'Ok',
+              onPress: () => {
+
+              },
+              style: 'default',
+            },
+          ],
+        });
+      } else {
+        const result2 = decryptData(result.error, secretKey);
+        const result3 = JSON.parse(result2);
+        console.log("Chat Cancel Order Error response ==>" + JSON.stringify(result3));
+        CustomDialogManager2.show({
+          title: 'Alert',
+          message: result3.message,
+          type: 2,
+          buttons: [
+            {
+              text: 'Ok',
+              onPress: () => {
+
+              },
+              style: 'default',
+            },
+          ],
+        });
+      }
+
+    });
+  }
+
+  const callChatAcceptApi = (chatOrderId: any, panditId: any) => {
+    setActivity(false);
+    chatAcceptOrderApi(chatOrderId).then(response => {
+      setActivity(false);
+      console.log("Accept Order response ==>" + response);
+      const result = JSON.parse(response);
+      if (result.success === true) {
+        console.log("Accept Order Successfully ==>" + JSON.stringify(result));
+        navigation.push('ChatWindow', {
+          astrologerId: panditId,
+          orderId: chatOrderId,
+        });
+      } else {
+        const result2 = decryptData(result.error, secretKey);
+        const result3 = JSON.parse(result2);
+        console.log("Chat Accept Order Error response ==>" + JSON.stringify(result3));
+        CustomDialogManager2.show({
+          title: 'Alert',
+          message: result3.message,
+          type: 2,
+          buttons: [
+            {
+              text: 'Ok',
+              onPress: () => {
+
+              },
+              style: 'default',
+            },
+          ],
+        });
+      }
+
+    });
+  }
+
   const renderItem = ({ item }: any) => {
     const formatted = moment(item.created_at).format("DD-MMM-YYYY");
-    return(
-    <TouchableOpacity style={styles.row} onPress={()=>{
-      navigation.push('ChatWindow', { astrologerId:item.panditId,orderId:item.orderId }); 
-    }}>
-      <View style={styles.avatarWrap}>
-        <FastImage style={styles.avatar} source={{ uri: item.profile }} />
-        {item.online && <View style={styles.onlineDot} />}
-      </View>
+    return (
+      <TouchableOpacity style={styles.row} onPress={() => {
 
-      <View style={styles.body}>
-        <Text style={styles.name}>{item.name || 'Astrologer'}</Text>
-        <Text style={styles.message} numberOfLines={1}>
-          {item.lastmessage}
-        </Text>
-        <Text>{item.status}</Text>
-      </View>
 
-      <View style={styles.right}>
-        <Text style={styles.date}>{formatted}</Text>
-      </View>
-    </TouchableOpacity>
-  )};
+      }}>
+        <View style={styles.avatarWrap}>
+          <FastImage style={styles.avatar} source={{ uri: item.profile }} />
+          {item.online && <View style={styles.onlineDot} />}
+        </View>
+
+        <View style={styles.body}>
+          <Text style={styles.name}>{item.name || 'Astrologer'}</Text>
+          <Text style={styles.message} numberOfLines={1}>
+            {item.lastmessage}
+          </Text>
+          <Text>{item.status}</Text>
+        </View>
+
+        <View style={styles.right}>
+          <Text style={styles.date}>{formatted}</Text>
+
+
+          {item.status === "continue" && item.is_accept && (
+            <TouchableOpacity style={[styles.statusbtn, { borderColor: 'green' }]} onPress={()=>{
+                     navigation.push('ChatWindow', {
+                        astrologerId: item.panditId,
+                        orderId: item.orderId,
+                      });
+                     
+            }}>
+              <Text style={[styles.subText, { color: 'green' }]}>
+                {"Chat"}
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          {item.status === "pending" && (
+            <TouchableOpacity style={[styles.statusbtn, { borderColor: 'gray' }]}
+              onPress={() => {
+                  updateOrderItem(item.id, {
+                    is_accept: false,
+                    status: "cancel",
+                  });
+                callChatCancelApi(item.orderId);
+
+                dispatch(removeWaitListItem(item.id));
+              }}>
+              <Text style={[styles.subText, { color: 'gray' }]}>
+                {"Cancel"}
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          {item.status === "continue" && !item.is_accept && (
+            <TouchableOpacity style={[styles.statusbtn, { borderColor: colors.primaryColor }]}
+              onPress={() => {
+                  updateOrderItem(item.id, {
+                    is_accept: true,
+                    status: "continue",
+                  });
+                callChatAcceptApi(item.orderId, item.panditId);
+                dispatch(updateWaitListItem({
+                                      id: item.id,
+                                      changes: {
+                                        is_accept: true,
+                                      },}));
+              }}>
+              <Text style={[styles.subText, { color: colors.primaryColor }]}>
+                {"Accept"}
+              </Text>
+            </TouchableOpacity>
+          )}
+
+        </View>
+      </TouchableOpacity>
+    )
+  };
 
   return (
-        <SafeAreaProvider>
-            <SafeAreaView style={styles.container}>
-      {/* Header */}
-                    <View style={styles.header}>
-                        <View style={styles.left}>
-                                <TouchableOpacity onPress={() => navigation.goBack()}>
-                                <BackIcon size={16} tintColor={undefined} onPress={() => navigation.goBack()} />
-                                </TouchableOpacity>
-                            </View>
-
-                            <Text style={styles.headerTitle}>Order History</Text>
-
-                            <View style={styles.rightp} /> 
-                    </View>
-
-      {/* Tabs */}
-      <View style={styles.tabs}>
-        {tabs.map((t) => {
-          const isActive = activeTab === (t.id as any);
-          return (
-            <TouchableOpacity
-              key={t.id}
-              style={styles.tabItem}
-              onPress={() => setActiveTab(t.id as any)}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>
-                {t.label}
-              </Text>
-              {isActive && <View style={styles.tabIndicator} />}
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.left}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <BackIcon size={16} tintColor={undefined} onPress={() => navigation.goBack()} />
             </TouchableOpacity>
-          );
-        })}
-      </View>
+          </View>
 
-      {activeTab === "wallet" && (
-        <View style={styles.walletWrap}>
+          <Text style={styles.headerTitle}>Order History</Text>
+
+          <View style={styles.rightp} />
+        </View>
+
+        {/* Tabs */}
+        <View style={styles.tabs}>
+          {tabs.map((t) => {
+            const isActive = activeTab === (t.id as any);
+            return (
+              <TouchableOpacity
+                key={t.id}
+                style={styles.tabItem}
+                onPress={() => setActiveTab(t.id as any)}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>
+                  {t.label}
+                </Text>
+                {isActive && <View style={styles.tabIndicator} />}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {activeTab === "wallet" && (
+          <View style={styles.walletWrap}>
             {/* Balance Row */}
             <Text style={styles.balanceTitle}>Available Balance</Text>
 
             <View style={styles.balanceRow}>
-            <Text style={styles.balanceAmount}>₹ 0.0</Text>
-            <TouchableOpacity style={styles.rechargeBtn}>
+              <Text style={styles.balanceAmount}>₹ 0.0</Text>
+              <TouchableOpacity style={styles.rechargeBtn}>
                 <Text style={styles.rechargeText}>Recharge</Text>
-            </TouchableOpacity>
+              </TouchableOpacity>
             </View>
 
             {/* Buttons Row */}
             <View style={styles.walletBtnRow}>
-            <TouchableOpacity 
+              <TouchableOpacity
                 style={[
-            styles.walletInactiveBtn,
-            activeWalletTab === 'wallet' && styles.walletActiveBtn
-            ]} onPress={()=>setWalletActiveTab('wallet')}>
+                  styles.walletInactiveBtn,
+                  activeWalletTab === 'wallet' && styles.walletActiveBtn
+                ]} onPress={() => setWalletActiveTab('wallet')}>
                 <Text style={[
-            styles.walletInactiveText,
-            activeWalletTab === 'wallet' && styles.walletActiveText
-            ]}>Wallet Transactions</Text>
-            </TouchableOpacity>
+                  styles.walletInactiveText,
+                  activeWalletTab === 'wallet' && styles.walletActiveText
+                ]}>Wallet Transactions</Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity 
+              <TouchableOpacity
                 style={[
-            styles.paymentInactiveBtn,
-            activeWalletTab === 'payment' && styles.paymentActiveBtn
-            ]} onPress={()=>setWalletActiveTab('payment')}
-            >
+                  styles.paymentInactiveBtn,
+                  activeWalletTab === 'payment' && styles.paymentActiveBtn
+                ]} onPress={() => setWalletActiveTab('payment')}
+              >
                 <Text style={[styles.paymentInactiveText, activeWalletTab === 'payment' && styles.paymentActiveText]}>Payment Logs</Text>
-            </TouchableOpacity>
+              </TouchableOpacity>
             </View>
 
 
-            {activeWalletTab === 'wallet' &&<FlatList
-                data={walletData}
-                keyExtractor={(item) => item.id}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingVertical: 10 }}
-    
-                renderItem={({ item }) => (
-                    <View style={styles.card}>
-                    <View style={styles.cardRow}>
-                        <Text style={styles.cardTitle}>Chat with Astrologer for 2 minutes</Text>
-                        <Text style={styles.cardAmount}>+₹ 0.0</Text>
-                    </View>
+            {activeWalletTab === 'wallet' && <FlatList
+              data={walletData}
+              keyExtractor={(item) => item.id}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingVertical: 10 }}
 
-                    <Text style={styles.cardDate}>29 Nov 25, 08:34 PM</Text>
+              renderItem={({ item }) => (
+                <View style={styles.card}>
+                  <View style={styles.cardRow}>
+                    <Text style={styles.cardTitle}>Chat with Astrologer for 2 minutes</Text>
+                    <Text style={styles.cardAmount}>+₹ 0.0</Text>
+                  </View>
 
-                    <View style={styles.hashRow}>
-                        <Text style={styles.cardHash}>#CHAT_NEW295423182</Text>
-                        <Feather name="copy" size={15} color="#777" />
-                    </View>
-                    </View>
-                )}
-                ListEmptyComponent={
-                    <View style={{ flex:1, justifyContent:'center', alignItems:'center', marginTop: 50 }}>
-                    <Text style={{ fontSize: 16, color: "#888", fontFamily: Fonts.Medium }}>
-                        No Record Found
-                    </Text>
-                    </View>
-                }
-                ListFooterComponent={() => (loadingMore ? <View style={styles.loadingMore}><Text>Loading...</Text></View> : null)}
-                />}
+                  <Text style={styles.cardDate}>29 Nov 25, 08:34 PM</Text>
+
+                  <View style={styles.hashRow}>
+                    <Text style={styles.cardHash}>#CHAT_NEW295423182</Text>
+                    <Feather name="copy" size={15} color="#777" />
+                  </View>
+                </View>
+              )}
+              ListEmptyComponent={
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 50 }}>
+                  <Text style={{ fontSize: 16, color: "#888", fontFamily: Fonts.Medium }}>
+                    No Record Found
+                  </Text>
+                </View>
+              }
+              ListFooterComponent={() => (loadingMore ? <View style={styles.loadingMore}><Text>Loading...</Text></View> : null)}
+            />}
 
 
 
-        </View>
+          </View>
         )}
 
 
         {activeTab === "remedies" && (
-                  <View style={styles.tabs}>
-                    {tabsRemedy.map((t) => {
-                    const isActive = activeRemedyTab === (t.id as any);
-                    return (
-                    <TouchableOpacity 
-                        key={t.id}
-                        style={[
-                        styles.remedyInactiveBtn,
-                        isActive && styles.remedyActiveBtn
-                        ]} 
-                    onPress={()=>setRemedytActiveTab(t.id as any)}
-                    activeOpacity={0.8}>
-                        <Text style={[
-                                styles.remedyInactiveText,
-                                isActive && styles.remedyActiveText
-                                ]}>{t.label}</Text>
-                    </TouchableOpacity>
-                    );
-                    })}
-                </View>
+          <View style={styles.tabs}>
+            {tabsRemedy.map((t) => {
+              const isActive = activeRemedyTab === (t.id as any);
+              return (
+                <TouchableOpacity
+                  key={t.id}
+                  style={[
+                    styles.remedyInactiveBtn,
+                    isActive && styles.remedyActiveBtn
+                  ]}
+                  onPress={() => setRemedytActiveTab(t.id as any)}
+                  activeOpacity={0.8}>
+                  <Text style={[
+                    styles.remedyInactiveText,
+                    isActive && styles.remedyActiveText
+                  ]}>{t.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         )
 
         }
 
 
-      {/* Content area */}
-      <View style={styles.content}>
-        {/* If orders list is empty show placeholder */}
-        {activeTab === "orders" && SAMPLE_ORDERS.length === 0 ? (
-          <View style={styles.empty}>
-            <Text style={styles.emptyText}>No orders yet</Text>
-          </View>
-        ) : activeTab === "orders" && (
-          <FlatList
-            data={orders}
-            keyExtractor={(item, index) => `${item.id || 'no-id'}_${index}`}
-            renderItem={renderItem}
-            contentContainerStyle={styles.list}
-            showsVerticalScrollIndicator={false}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-            onEndReached={loadMore}
-            onEndReachedThreshold={0.4}
-            ListFooterComponent={() => (loadingMore ? <View style={styles.loadingMore}><Text>Loading...</Text></View> : null)}
-          />
-        )}
-      </View>
-         <AppSpinner show={activity} />
-               </SafeAreaView>
-           </SafeAreaProvider>
+        {/* Content area */}
+        <View style={styles.content}>
+          {/* If orders list is empty show placeholder */}
+          {activeTab === "orders" && SAMPLE_ORDERS.length === 0 ? (
+            <View style={styles.empty}>
+              <Text style={styles.emptyText}>No orders yet</Text>
+            </View>
+          ) : activeTab === "orders" && (
+            <FlatList
+              data={orders}
+              keyExtractor={(item, index) => `${item.id || 'no-id'}_${index}`}
+              renderItem={renderItem}
+              contentContainerStyle={styles.list}
+              showsVerticalScrollIndicator={false}
+              refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+              onEndReached={loadMore}
+              onEndReachedThreshold={0.4}
+              ListFooterComponent={() => (loadingMore ? <View style={styles.loadingMore}><Text>Loading...</Text></View> : null)}
+              ListEmptyComponent={
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 50 }}>
+                  <Text style={{ fontSize: 16, color: "#888", fontFamily: Fonts.Medium }}>
+                    No Record Found
+                  </Text>
+                </View>
+              }
+            />
+          )}
+        </View>
+        <AppSpinner show={activity} />
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
 
-header: {
-  flexDirection: "row",
-  alignItems: "center",
-  justifyContent: "space-between",
-  paddingHorizontal: 8,
-  paddingVertical: 12,
-  backgroundColor: "#fff",
-  borderBottomColor: "gray",
-  borderBottomWidth: 0.4,
-},
-left: {
-  width: 40,
-  justifyContent: "center",
-  alignItems: "flex-start",
-},
-rightp: {
-  width: 40, // 👈 same size as left for perfect center
-},
-headerTitle: {
-  fontSize: 20,
-  fontWeight: "600",
-  fontFamily: Fonts.Medium,
-  textAlign: "center",
-  flex: 1, // 👈 takes remaining middle space
-},
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+    backgroundColor: "#fff",
+    borderBottomColor: "gray",
+    borderBottomWidth: 0.4,
+  },
+  left: {
+    width: 40,
+    justifyContent: "center",
+    alignItems: "flex-start",
+  },
+  rightp: {
+    width: 40, // 👈 same size as left for perfect center
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "600",
+    fontFamily: Fonts.Medium,
+    textAlign: "center",
+    flex: 1, // 👈 takes remaining middle space
+  },
 
 
   tabs: {
@@ -381,7 +539,7 @@ headerTitle: {
     fontSize: 14,
     color: "#888",
     paddingVertical: 4,
-    fontFamily:Fonts.Medium
+    fontFamily: Fonts.Medium
   },
   tabLabelActive: {
     color: "#222",
@@ -407,11 +565,11 @@ headerTitle: {
     fontSize: 12,
     fontWeight: "600",
     color: "#000",
-    fontFamily:Fonts.Medium
+    fontFamily: Fonts.Medium
   },
   remedyInactiveBtn: {
     flex: 1,
-    marginHorizontal:3,
+    marginHorizontal: 3,
     borderWidth: 1,
     borderColor: "#E0E0E0",
     borderRadius: 22,
@@ -423,7 +581,7 @@ headerTitle: {
     fontSize: 12,
     fontWeight: "500",
     color: "#666",
-    fontFamily:Fonts.Medium
+    fontFamily: Fonts.Medium
   },
 
   content: {
@@ -481,24 +639,24 @@ headerTitle: {
     fontWeight: "600",
     color: "#111",
     marginBottom: 6,
-    fontFamily:Fonts.Medium
+    fontFamily: Fonts.Medium
   },
   message: {
     fontSize: 13,
     color: "#777",
-    fontFamily:Fonts.Medium
+    fontFamily: Fonts.Medium
   },
 
   right: {
     width: 88,
     alignItems: "flex-end",
     // justifyContent: "center",
-    top:0
+    top: 0
   },
   date: {
     fontSize: 12,
     color: "#777",
-    fontFamily:Fonts.Medium
+    fontFamily: Fonts.Medium
   },
 
   empty: {
@@ -509,20 +667,20 @@ headerTitle: {
   emptyText: {
     color: "#999",
     fontSize: 15,
-    fontFamily:Fonts.Medium
+    fontFamily: Fonts.Medium
   },
 
   walletWrap: {
     paddingHorizontal: 16,
     paddingTop: 12,
-    marginBottom:210
+    marginBottom: 210
   },
 
   balanceTitle: {
     fontSize: 14,
     color: "#777",
     marginBottom: 6,
-    fontFamily:Fonts.Medium
+    fontFamily: Fonts.Medium
   },
   balanceRow: {
     flexDirection: "row",
@@ -533,7 +691,7 @@ headerTitle: {
     fontSize: 26,
     fontWeight: "700",
     color: "#000",
-    fontFamily:Fonts.Medium
+    fontFamily: Fonts.Medium
   },
   rechargeBtn: {
     backgroundColor: colors.primaryColor,
@@ -545,7 +703,7 @@ headerTitle: {
     color: "#000",
     fontWeight: "600",
     fontSize: 14,
-    fontFamily:Fonts.Medium
+    fontFamily: Fonts.Medium
   },
 
   walletBtnRow: {
@@ -565,7 +723,7 @@ headerTitle: {
     fontSize: 14,
     fontWeight: "600",
     color: "#000",
-    fontFamily:Fonts.Medium
+    fontFamily: Fonts.Medium
   },
   walletInactiveBtn: {
     flex: 1,
@@ -581,11 +739,11 @@ headerTitle: {
     fontSize: 14,
     fontWeight: "500",
     color: "#666",
-    fontFamily:Fonts.Medium
+    fontFamily: Fonts.Medium
   },
   paymentActiveBtn: {
     flex: 1,
-    backgroundColor:colors.primaryColor,
+    backgroundColor: colors.primaryColor,
     borderRadius: 22,
     height: 40,
     justifyContent: "center",
@@ -595,7 +753,7 @@ headerTitle: {
     fontSize: 14,
     fontWeight: "600",
     color: "#000",
-    fontFamily:Fonts.Medium
+    fontFamily: Fonts.Medium
   },
   paymentInactiveBtn: {
     flex: 1,
@@ -611,7 +769,7 @@ headerTitle: {
     fontSize: 14,
     fontWeight: "500",
     color: "#666",
-    fontFamily:Fonts.Medium
+    fontFamily: Fonts.Medium
   },
 
   card: {
@@ -637,20 +795,20 @@ headerTitle: {
     color: "#000",
     fontWeight: "600",
     flex: 1,
-    fontFamily:Fonts.Medium
+    fontFamily: Fonts.Medium
   },
   cardAmount: {
     fontSize: 14,
     fontWeight: "600",
     color: "#0FAD4E",
     marginLeft: 10,
-    fontFamily:Fonts.Medium
+    fontFamily: Fonts.Medium
   },
   cardDate: {
     fontSize: 13,
     color: "#666",
     marginTop: 4,
-    fontFamily:Fonts.Medium
+    fontFamily: Fonts.Medium
   },
 
   hashRow: {
@@ -662,7 +820,22 @@ headerTitle: {
     fontSize: 13,
     color: "#666",
     marginRight: 6,
-    fontFamily:Fonts.Medium
+    fontFamily: Fonts.Medium
   },
   loadingMore: { padding: 16, alignItems: 'center', justifyContent: 'center' },
+  subText: {
+    fontSize: 12,
+    color: "#666",
+    marginTop: 2,
+    fontFamily: Fonts.Medium
+  },
+  statusbtn: {
+    marginTop: 10,
+    alignItems: 'center',
+    borderColor: 'gray',
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 5
+  }
 });
