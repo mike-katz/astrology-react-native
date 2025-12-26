@@ -15,7 +15,7 @@ const RemediesScreen = () =>{
 const navigation = useNavigation<any>();
 const userDetailsData = useSelector((state: RootState) => state.userDetails.userDetails);
 const [menuVisible, setMenuVisible] = useState(false);
-const  link_web  = 'https://astrotalkguruji.store';
+const  link_web  = 'https://astroguruji.store';
 
 const scrollY = React.useRef(new Animated.Value(0)).current;
 const [loading, setLoading] = React.useState(true); 

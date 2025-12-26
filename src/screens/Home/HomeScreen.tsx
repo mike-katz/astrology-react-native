@@ -237,7 +237,7 @@ const playSoundRepeated = async () => {
       const uri =
         'https://astrotalkguruji.s3.ap-south-1.amazonaws.com/avatars/notification_sound.wav';
       await NitroSound.startPlayer(uri);
-
+      NitroSound.setVolume(1);
       NitroSound.addPlaybackEndListener(() => {
         setTimeout(playSound, 500);
       });
@@ -267,7 +267,6 @@ const callPanditApi = () => {
         setActivity(false);
         console.log("Create Order response ==>" +response);
         const result = JSON.parse(response);
-        console.log("Create Order response222 ==>" +JSON.stringify(result.success));
         if(result.success===true){
           // navigation.push('ChatWindow', { astrologerId: astrologerId,orderId:result.data.orderId }); 
         }else{
@@ -552,7 +551,7 @@ const handleStartChat = (item:any)=>{
 
       <FlatList
           data={astrologers}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item, index) => `${item.id}-${index}`}
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ overflow: 'visible',paddingHorizontal: 12,paddingVertical:12 }}

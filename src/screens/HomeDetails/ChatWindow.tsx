@@ -49,6 +49,7 @@ import { MessageContextMenu } from "../../utils/MessageContextMenu";
 import { OrderSeparator } from "../../utils/OrderSeparator";
 import { defaultProfile } from "../../constant/AppConst";
 import { MessageStatus } from "../../utils/MessageStatus";
+import ProfileSelector from "./ProfileSelector";
 
 type Message = {
     id: string;
@@ -116,6 +117,9 @@ export default function ChatWindow({ route }: any) {
     const MENU_WIDTH = 140;
     const { width: SCREEN_WIDTH } = Dimensions.get('window');
     const EDGE_PADDING = 12;
+    const [profileSelector, setProfileSelector] = useState(false);
+    const [selectedName, setSelectedName] = useState<string>(""); 
+    const [selectedId, setSelectedId] = useState<string>("");
 
   
 useEffect(() => {
@@ -180,6 +184,10 @@ useEffect(() => {
             console.log("Chat Details response ==>" + (response));
             const result = JSON.parse(response);
             if (result.success === true) {
+              
+              setSelectedName(result.name);
+              setSelectedId(result.id);
+
                 setPanditDetail(result.data);
                 setAvatarUri(result.data.profile);
                 setPanditName(result.data.name);
@@ -317,6 +325,7 @@ useEffect(() => {
     // if (!astrologerId || !ServiceConstants.User_ID || !orderId) return;
 
     onEvent('typing', (data) => {
+       
       setTypingUser(true);
     });
 
@@ -398,14 +407,6 @@ useEffect(() => {
 
     const sendMessage = useCallback(() => {
         if (!text.trim()) return;
-        // const ids = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-        // const newMsg: Message = {
-        //     id: ids,
-        //     sender_type:"user",
-        //     message:text.trim(), 
-        //     created_at:new Date().toISOString()
-        // };
-        // setMessages1(prev => [newMsg, ...prev]);
         setText("");
         // scroll to end
         setTimeout(() => {
@@ -417,16 +418,6 @@ useEffect(() => {
     }, [text]);
 
     const endChat = () => {
-        // setIsChatEnded(true);
-        // setMessages1((p) => [
-            
-        //     {
-        //         id: String(Date.now()),
-        //         sender_type: "system",
-        //         message: "You ended the chat",
-        //         created_at: new Date().toISOString()
-        //     } as any,...p
-        // ])
         callEndChat();
     };
     const startChat = () => {
@@ -582,7 +573,7 @@ useEffect(() => {
                         x: safeX,
                         y: pageY,
                         });
-                        setSelectedItem(item);
+                       
                         setShowContextMenu(true);
                     }}}>
                 {!isUser && (
@@ -606,7 +597,7 @@ useEffect(() => {
                     <View style={{ width: 46, }} >
                         <FastImage
                             //  source={dummyUri ? { uri: dummyUri } : DEFAULT_AVATAR}
-                            source={DEFAULT_AVATAR}
+                            source={{uri:defaultProfile}}
                             defaultSource={DEFAULT_AVATAR}
                             style={styles.msgAvatarUser} />
                     </View>
@@ -1007,6 +998,51 @@ setTimeout(async () => {
             });
     }
 
+    const createOrderChatApi=(astrologerId:any,profileId:any)=>{
+        createOrderApi(astrologerId,profileId,"chat").then(response => {
+        setActivity(false);
+        console.log("Create Order response ==>" +response);
+        const result = JSON.parse(response);
+        if(result.success===true){
+            navigation.goBack(); 
+        }else{
+            const result2 = decryptData(result.error,secretKey);
+            const result3 = JSON.parse(result2);
+            console.log("Create Messages Error response ==>" +JSON.stringify(result3));
+          
+            CustomDialogManager2.show({
+                title: 'Alert',
+                message: result3.message,
+                type:2,
+                buttons: [
+                  {
+                    text: 'Ok',
+                    onPress: () => {
+                        if(ServiceConstants.User_ID==null){
+                          navigation.reset({
+                                        index: 0,
+                                        routes: [{ name: 'AuthStack' }]
+                                      });
+                        }else{
+                          navigation.push("OrderHistoryScreen");
+                        }         
+                    },
+                    style: 'default',
+                  },
+                ],
+              });
+        }
+        
+      });
+    }    
+const handleCloseProfile = ()=>{
+  setProfileSelector(false);
+}
+const handleStartChat = (item:any)=>{
+  setProfileSelector(false);
+  createOrderChatApi(astrologerId,item.id);
+}
+
     return (
 
         <SafeAreaProvider>
@@ -1070,7 +1106,7 @@ setTimeout(async () => {
                                 ListFooterComponent={() => (loadingMore ? <View style={styles.loadingMore}><Text>Loading...</Text></View> : null)}
                             />
 
-                            <Text>Status: {isConnected ? 'connected' : 'disconnected'}</Text>
+                            {/* <Text>Status: {isConnected ? 'connected' : 'disconnected'}</Text> */}
                             {typingUser && <Text>Typing...</Text>}
                             {/* <Text>Transport: { transport }</Text> */}
 
@@ -1109,7 +1145,9 @@ setTimeout(async () => {
                                         </View>
                                     </View>
 
-                                    <TouchableOpacity style={styles.continueBtn}>
+                                    <TouchableOpacity style={styles.continueBtn} onPress={()=>{
+                                        setProfileSelector(true);
+                                    }}>
                                         <Text style={styles.continueText}>Continue Chat</Text>
                                     </TouchableOpacity></>)}
                         </View>
@@ -1262,6 +1300,12 @@ setTimeout(async () => {
                 
                     }}/>
 
+              <ProfileSelector
+                name={selectedName} 
+                visible={profileSelector} 
+                onClose={handleCloseProfile} 
+                onStartChat={handleStartChat} />
+
                 <AppSpinner show={activity} />
 
             </SafeAreaView>
@@ -1317,8 +1361,24 @@ const styles = StyleSheet.create({
     rowLeft: { justifyContent: "flex-start" },
     rowRight: { justifyContent: "flex-end", alignSelf: "stretch" },
 
-    msgAvatar: { width: 36, height: 36, borderRadius: 18, marginRight: 8 },
-    msgAvatarUser: { width: 36, height: 36, borderRadius: 18, marginLeft: 9 },
+    msgAvatar: { 
+        width: 36, 
+        height: 36, 
+        borderRadius: 18, 
+        marginRight: 8,
+        backgroundColor: colors.primaryLightColor,        // light yellow fill
+        borderWidth: 1,
+        borderColor: colors.primaryColor, 
+     },
+    msgAvatarUser: { 
+        width: 36, 
+        height: 36, 
+        borderRadius: 18, 
+        marginLeft: 9,
+        backgroundColor: colors.primaryLightColor,        // light yellow fill
+        borderWidth: 1,
+        borderColor: colors.primaryColor,  
+    },
     msgBubble: {
         maxWidth: width * 0.74,
         paddingVertical: 10,

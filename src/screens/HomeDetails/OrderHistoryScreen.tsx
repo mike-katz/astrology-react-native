@@ -16,7 +16,7 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { AppSpinner } from "../../utils/AppSpinner";
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { colors, Fonts } from "../../styles";
-import { chatAcceptOrderApi, chatCancelOrderApi, getOrderList } from "../../redux/actions/UserActions";
+import { chatAcceptOrderApi, chatCancelOrderApi, deleteAllPayment, deleteAllTransaction, deleteSinglePayment, deleteSingleTransaction, getOrderList, getPaymentLogs, getPaymentTransactions } from "../../redux/actions/UserActions";
 import moment from "moment";
 import { BackIcon } from "../../assets/icons";
 import { CustomDialogManager2 } from "../../utils/CustomDialog2";
@@ -97,6 +97,10 @@ export default function OrderHistoryScreen() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
   const dispatch = useDispatch();
+  const [pagePL, setPagePL] = useState(1);
+  const [paymentLogs, setPaymentLogs] = useState<any[]>([]);
+  const [pagePT, setPagePT] = useState(1);
+  const [paymentTransactions, setPaymentTransactions] = useState<any[]>([]);
 
   const tabs = useMemo(
     () => [
@@ -114,6 +118,54 @@ export default function OrderHistoryScreen() {
     ],
     []
   );
+
+  const callPaymentLogs =()=>{
+    getPaymentLogs(pagePL).then(response => {
+      setActivity(false);
+      console.log("PaymentLogs response ==>" + response )
+      const result = JSON.parse(response);
+      setPaymentLogs(result.data.results);
+
+    });
+  }
+  const callTransactions =()=>{
+    getPaymentTransactions(pagePT).then(response => {
+      setActivity(false);
+      console.log("Transactions Logs response ==>" + response )
+      const result = JSON.parse(response);
+      setPaymentTransactions(result.data.results);
+      // Alert.alert(result)
+    });
+  }
+
+  const callDeleteSinglePayment=()=>{
+    deleteSinglePayment(page).then(response => {
+      setActivity(false);
+      console.log("Delete Single Payment response ==>" + response )
+      const result = JSON.parse(response);
+    });
+  }
+    const callDeleteAllPayment=()=>{
+    deleteAllPayment().then(response => {
+      setActivity(false);
+      console.log("Delete Single Payment response ==>" + response )
+      const result = JSON.parse(response);
+    });
+  }
+  const callDeleteSingleTransaction=()=>{
+    deleteSingleTransaction(page).then(response => {
+      setActivity(false);
+      console.log("Delete Single Payment response ==>" + response )
+      const result = JSON.parse(response);
+    });
+  }
+  const callDeleteAllTransaction=()=>{
+    deleteAllTransaction().then(response => {
+      setActivity(false);
+      console.log("Delete Single Payment response ==>" + response )
+      const result = JSON.parse(response);
+    });
+  }
 
   const callOrderListApi = () => {
     setActivity(false);
@@ -168,6 +220,9 @@ useFocusEffect(
 
     // Call API for first page
     callOrderListApi();
+
+    callTransactions();
+    callPaymentLogs();
 
     return () => {
       // optional cleanup
@@ -293,7 +348,7 @@ useFocusEffect(
           <Text style={[styles.status]}>{item.status?.toUpperCase()}</Text>
           {/* {item.status === "cancel" &&<Text style={[styles.status, { color:'red',borderColor: 'red' }]}>{item.status?.toUpperCase()}</Text>} */}
           {/* {item.status === "pending" &&<Text style={[styles.status, { color:'#baab28',borderColor: '#baab28' }]}>{item.status?.toUpperCase()}</Text>} */}
-          {item.status === "completed" &&<Text style={[styles.status, { color:'green',borderColor: 'green' }]}>{item.status?.toUpperCase()}</Text>}
+          {/* {item.status === "completed" &&<Text style={[styles.status, { color:'green',borderColor: 'green' }]}>{item.status?.toUpperCase()}</Text>} */}
           {item.status === "continue" && item.is_accept &&<Text style={[styles.subText,{color:'green'}]}>Your chat is inprogress.</Text>}
           {item.status === "pending" && <Text style={[styles.subText,{color:'red'}]}>Wait for pandit to accept your chat request.</Text>}
         </View>
@@ -430,8 +485,9 @@ useFocusEffect(
             </View>
 
 
-            {activeWalletTab === 'wallet' && <FlatList
-              data={walletData}
+            {activeWalletTab === 'wallet' && 
+            <FlatList
+              data={paymentTransactions}
               keyExtractor={(item) => item.id}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{ paddingVertical: 10 }}
@@ -439,14 +495,48 @@ useFocusEffect(
               renderItem={({ item }) => (
                 <View style={styles.card}>
                   <View style={styles.cardRow}>
-                    <Text style={styles.cardTitle}>Chat with Astrologer for 2 minutes</Text>
-                    <Text style={styles.cardAmount}>+₹ 0.0</Text>
+                    <Text style={styles.cardTitle}>{item.message}</Text>
+                    <Text style={styles.cardAmount}>{item.amount}</Text> 
+                    {/* +₹ */}
                   </View>
 
-                  <Text style={styles.cardDate}>29 Nov 25, 08:34 PM</Text>
+                  <Text style={styles.cardDate}>{moment(item.created_at).format("DD MMM YYYY, hh:mm A")}</Text>
 
                   <View style={styles.hashRow}>
                     <Text style={styles.cardHash}>#CHAT_NEW295423182</Text>
+                    <Feather name="copy" size={15} color="#777" />
+                  </View>
+                </View>
+              )}
+              ListEmptyComponent={
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 50 }}>
+                  <Text style={{ fontSize: 16, color: "#888", fontFamily: Fonts.Medium }}>
+                    No Record Found
+                  </Text>
+                </View>
+              }
+              ListFooterComponent={() => (loadingMore ? <View style={styles.loadingMore}><Text>Loading...</Text></View> : null)}
+            />}
+
+            {activeWalletTab === 'payment' && 
+            <FlatList
+              data={paymentLogs}
+              keyExtractor={(item) => item.id}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingVertical: 10 }}
+
+              renderItem={({ item }) => (
+                <View style={styles.card}>
+                  <View style={styles.cardRow}>
+                    <Text style={styles.cardTitle}>{item.type.toUpperCase()}{"\n"}{item.status.toUpperCase()}</Text>
+                    <Text style={styles.cardAmount}>{item.amount}{"\n"}({item.gst})</Text> 
+                    {/* +₹ */}
+                  </View>
+
+                  <Text style={styles.cardDate}>{moment(item.created_at).format("DD MMM YYYY, hh:mm A")}</Text>
+
+                  <View style={styles.hashRow}>
+                    <Text style={styles.cardHash}>#{item.transaction_id}</Text>
                     <Feather name="copy" size={15} color="#777" />
                   </View>
                 </View>
@@ -836,7 +926,8 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#0FAD4E",
     marginLeft: 10,
-    fontFamily: Fonts.Medium
+    fontFamily: Fonts.Medium,
+    textAlign:'center'
   },
   cardDate: {
     fontSize: 13,

@@ -11,6 +11,7 @@ import Feather from "react-native-vector-icons/Feather";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 import FastImage from "react-native-fast-image";
+import { defaultProfile } from "../constant/AppConst";
 
 type Props = {
   visible: boolean;
@@ -55,7 +56,7 @@ export default function WaitlistJoinedModal({ visible,data, onClose }: Props) {
             {/* Astrologer */}
             <View style={styles.avatarBlock}>
               <View style={styles.avatarWrapper}>
-                <FastImage source={{ uri: userDetailsData.profile }} style={styles.avatar} />
+                <FastImage source={{ uri: defaultProfile }} style={styles.avatar} />
               </View>
               <Text style={styles.name}>{userDetailsData.name}</Text>
             </View>

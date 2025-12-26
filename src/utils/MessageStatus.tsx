@@ -1,7 +1,7 @@
 import Ionicons from "react-native-vector-icons/Ionicons";
 const getMessageStatus = (msg:any) => {
-  if (msg) return "read";
-  if (msg) return "delivered";
+  // if (msg) return "read";
+  // if (msg) return "delivered";
   return "sent";
 };
 export const MessageStatus = ({ message }:any) => {

@@ -38,6 +38,13 @@ export const Apis = {
   deleteMessage: `${BASE_URL}chat/delete?`,
   deleteOrder: `${BASE_URL}order/delete?`,
   infoOrder: `${BASE_URL}review/detail?`,
+  paymentLogs: `${BASE_URL}payment?`,
+  paymentTransactions: `${BASE_URL}payment/transactions?`,
+  createPayment: `${BASE_URL}payment`,
+  deleteSinglePayment:`${BASE_URL}payment`,
+  deleteAllPayments:`${BASE_URL}payment/all`,
+  deleteSingleTransaction:`${BASE_URL}payment/single/transaction`,
+  deleteAllTransaction:`${BASE_URL}payment/all-transaction`,
   
 };
 

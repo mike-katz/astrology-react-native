@@ -267,6 +267,65 @@ export const getPanditReviewList = async (panditId:any,pagenum:any) => {
   return result;
 };
 
+export const getPaymentLogs = async (pagenum:any) => {
+  const body: any = {};
+   body['page'] = pagenum;
+   body['limit'] = 100;
+  const response = await getRequest({
+    url: Apis.paymentLogs,
+    header: headerWithBearer(),
+    body,
+  });
+  const result = response;
+  return result;
+};
+export const getPaymentTransactions = async (pagenum:any) => {
+  const body: any = {};
+   body['page'] = pagenum;
+   body['limit'] = 100;
+  const response = await getRequest({
+    url: Apis.paymentTransactions,
+    header: headerWithBearer(),
+    body,
+  });
+  const result = response;
+  return result;
+};
+export const createPaymentApi = async (amount: any) => {
+  const body: any = {};
+  body['amount'] = amount;
+  const response = await postRequest({ body, url: Apis.createPayment});
+    const result = JSON.parse(response);
+    if(result.success == true){
+        return response;
+    }else{
+      return response;
+    }
+};
+export const deleteSinglePayment = async (Id: any) => {
+  const body: any = {};
+  body['id'] = Id;
+  const response = await getRequest({ body, url: Apis.deleteSinglePayment,method:"delete"});
+  return response;
+};
+export const deleteAllPayment = async () => {
+  const body: any = {};
+  const response = await getRequest({ body, url: Apis.deleteAllPayments,method:"delete"});
+  return response;
+};
+export const deleteSingleTransaction = async (Id: any) => {
+  const body: any = {};
+  body['id'] = Id;
+  const response = await getRequest({ body, url: Apis.deleteSingleTransaction,method:"delete"});
+  return response;
+};
+export const deleteAllTransaction = async () => {
+  const body: any = {};
+  const response = await getRequest({ body, url: Apis.deleteAllTransaction,method:"delete"});
+  return response;
+};
+
+
 export const getPanditChatMessages = async (panditId:any,pagenum:any) => {
   const body: any = {};
   body['panditId'] = panditId;
