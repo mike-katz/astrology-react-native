@@ -424,8 +424,9 @@ Alert.alert("Selected Options", message);
             style={styles.walletIcon}
           />
           <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Text style={styles.addCashText}>Add Cash</Text>
-            <WalletPlusIcon width={12} height={12} style={{ marginLeft: 6 }} />
+            {userDetailsData.balance >0?(<Text style={styles.addCashText}>₹ {userDetailsData.balance}</Text>):(
+              <><Text style={styles.addCashText}>Add Cash</Text>
+            <WalletPlusIcon width={12} height={12} style={{ marginLeft: 6 }} /></>)}
           </View>
         </TouchableOpacity>
 

@@ -10,6 +10,7 @@ import { ServiceConstants } from "../../services/ServiceConstants";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import FastImage from "react-native-fast-image";
+import { defaultProfile } from "../../constant/AppConst";
 const HelpSupportScreen = () =>{
     const navigation = useNavigation<any>();
     const userDetailsData = useSelector((state: RootState) => state.userDetails.userDetails);
@@ -31,7 +32,7 @@ const HelpSupportScreen = () =>{
         <Text style={styles.headerTitle}>Help & support</Text>
 
         <TouchableOpacity style={styles.backBtn}>
-            <BackIcon size={16} onPress={handleBack} />
+            <BackIcon size={16} onPress={handleBack} tintColor={undefined} />
         </TouchableOpacity>
         <View style={{ position:'absolute',width:'100%', height: .1,backgroundColor:'#7B7B7B',bottom:0 }}></View>
     </Animated.View>
@@ -43,7 +44,7 @@ const HelpSupportScreen = () =>{
       <View style={styles.userCard}>
         <View style={styles.row}>
           <FastImage
-              source={{ uri: userDetailsData.profile }}
+              source={{ uri:defaultProfile }}
               style={styles.avatar}/>
           <View style={styles.userInfo}>
             <Text style={styles.userName}>{userDetailsData.name || "User"}</Text>
@@ -68,7 +69,7 @@ const HelpSupportScreen = () =>{
         <View style={styles.walletBox}>
           <Text style={styles.walletLabel}>Wallet & Recharge</Text>
           <View style={styles.walletRow}>
-            <Text style={styles.walletAmount}>₹ 0</Text>
+            <Text style={styles.walletAmount}>₹ {userDetailsData.balance}</Text>
 
             <TouchableOpacity style={styles.rechargeBtn} onPress={() => navigation.push('AddMoneyScreen')}>
               <Text style={styles.rechargeText}>Recharge</Text>
@@ -79,12 +80,16 @@ const HelpSupportScreen = () =>{
 
       {/* Options Row */}
       <View style={styles.optionsRow}>
-        <TouchableOpacity style={styles.optionBox}>
+        <TouchableOpacity style={styles.optionBox} onPress={()=>{
+          navigation.push("OrderHistoryScreen");
+        }}>
             <Feather name="shopping-bag" size={20} color="#000" />
           <Text style={styles.optionText}>My Orders</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.optionBox}>
+        <TouchableOpacity style={styles.optionBox} onPress={()=>{
+          navigation.push("OrderHistoryScreen");
+        }}>
            <Feather name="credit-card" size={20} color="#000" />
           <Text style={styles.optionText}>My Wallet</Text>
         </TouchableOpacity>

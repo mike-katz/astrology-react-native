@@ -13,6 +13,8 @@ import { BackIcon } from '../../assets/icons';
 import { Fonts } from '../../styles';
 import { useNavigation } from '@react-navigation/native';
 import WalletIcon from '../../assets/icons/WalletIcon';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../redux/store';
 
 const { width } = Dimensions.get('window');
 const ITEM_WIDTH = (width - 60) / 3; // 3-column grid
@@ -39,6 +41,7 @@ const AddMoneyScreen = () => {
     const handleBack = () => {
         navigation.goBack();
     }
+    const userDetailsData = useSelector((state: RootState) => state.userDetails.userDetails);
   return (
        <SafeAreaProvider>
            <SafeAreaView style={styles.container}>
@@ -48,16 +51,15 @@ const AddMoneyScreen = () => {
                     styles.header,
                     // { backgroundColor: headerBackgroundColor }
                 ]}>
-            <Text style={styles.headerTitle}>Add money to wallet</Text>
+            <Text style={styles.headerTitle}>Add Money to Wallet</Text>
 
             <TouchableOpacity style={styles.backBtn}>
-                <BackIcon size={16} onPress={handleBack} />
+                <BackIcon size={16} onPress={handleBack} tintColor={undefined} />
             </TouchableOpacity>
                    <View style={styles.walletBox}>
-                      <WalletIcon
-                      style={styles.walletIcon}
-                    />
-                    <Text style={styles.walletAmount}>₹ 0</Text>
+                      <WalletIcon width={12} height={12}
+                      style={styles.walletIcon}/>
+                    <Text style={styles.walletAmount}>₹ {userDetailsData.balance}</Text>
                   </View>
             <View style={{ position:'absolute',width:'100%', height: .1,backgroundColor:'#7B7B7B',bottom:0 }}></View>
         </Animated.View>
@@ -70,7 +72,12 @@ const AddMoneyScreen = () => {
         columnWrapperStyle={{ justifyContent: 'flex-start' }}
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20 }}
         renderItem={({ item }) => (
-          <View style={styles.card}>
+          <TouchableOpacity style={styles.card} onPress={()=>{
+            navigation.push("PaymentDetailsScreen", {
+              amount: item.price,
+              extra: item.extra,
+            });
+          }}>
             {item.popular && (
               <View style={styles.popularTag}>
                 <Text style={styles.popularText}>Most Popular</Text>
@@ -82,7 +89,7 @@ const AddMoneyScreen = () => {
             <View style={styles.extraBox}>
               <Text style={styles.extraText}>{item.extra}</Text>
             </View>
-          </View>
+          </TouchableOpacity>
         )}
       />
 
@@ -114,7 +121,7 @@ header: {
         position: 'absolute',
         textAlign: 'center',
         left: 0,
-        right: 0,
+        right:0,
         fontSize: 18,
         fontWeight: "500",
         color: "#000",
@@ -124,7 +131,7 @@ header: {
         width: 60,
         height: 40,
         justifyContent: "center",
-        paddingLeft: 10,
+        paddingLeft: 2,
     },
     walletBox: {
         flexDirection: 'row',
@@ -134,7 +141,7 @@ header: {
         borderRadius: 16,
         paddingHorizontal: 10,
         paddingVertical: 6,
-        marginRight:20
+        marginRight:10
     },
 
     walletIcon: {
@@ -143,7 +150,7 @@ header: {
     },
 
     walletAmount: {
-        fontSize: 12,
+        fontSize: 11,
         fontWeight: '600',
         fontFamily:Fonts.Medium
     },

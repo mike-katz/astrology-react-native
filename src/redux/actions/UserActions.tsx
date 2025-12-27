@@ -331,7 +331,7 @@ export const getPanditChatMessages = async (panditId:any,pagenum:any) => {
   body['panditId'] = panditId;
   //  body['orderId'] = orderId;
    body['page'] = pagenum;
-   body['limit'] = 5;
+   body['limit'] = 7;
   const response = await getRequest({
     url: Apis.getChatMessages,
     header: headerWithBearer(),

@@ -51,6 +51,7 @@ import { SocketProvider } from './src/socket/SocketProvider';
 import { SoundScreen } from './src/utils/SoundScreen';
 import CreateProfileScreen from './src/screens/HomeDetails/CreateProfile';
 import ProfileSelector from './src/screens/HomeDetails/ProfileSelector';
+import PaymentDetailsScreen from './src/screens/Payment/PaymentDetailsScreen';
 
 
  // Types for navigation
@@ -79,6 +80,7 @@ import ProfileSelector from './src/screens/HomeDetails/ProfileSelector';
    OrderHistoryScreen:undefined;
    KundliMatchingScreen:undefined;
    CreateProfileScreen:undefined;
+   PaymentDetailsScreen:undefined;
  };
  
  type AuthStackParamList = {
@@ -248,7 +250,13 @@ const RootNavigator = ({ initialRoute }: { initialRoute: keyof RootStackParamLis
        <RootStack.Screen
         name="CreateProfileScreen"
         component={CreateProfileScreen}
-        options={{ headerShown: false }} />       
+        options={{ headerShown: false }} /> 
+
+       <RootStack.Screen
+        name="PaymentDetailsScreen"
+        component={PaymentDetailsScreen}
+        options={{ headerShown: false }} /> 
+              
 
            <RootStack.Screen
         name="SoundScreen"

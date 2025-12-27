@@ -421,6 +421,7 @@ const handleAcceptChat = (item: any)=>{
                     })
                   );
       }else if(item.status=="continue" && item.is_accept){
+        
         navigation.push('ChatWindow', {
           astrologerId:item.pandit_id,
           orderId: item.order_id,
@@ -466,9 +467,11 @@ const handleStartChat = (item:any)=>{
            <WalletIcon width={12} height={12}
             style={styles.walletIcon}
           />
+          
           <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Text style={styles.addCashText}>Add Cash</Text>
-            <WalletPlusIcon width={12} height={12} style={{ marginLeft: 6 }} />
+            {userDetailsData.balance >0?(<Text style={styles.addCashText}>₹ {userDetailsData.balance}</Text>):(
+              <><Text style={styles.addCashText}>Add Cash</Text>
+            <WalletPlusIcon width={12} height={12} style={{ marginLeft: 6 }} /></>)}
           </View>
         </TouchableOpacity>
 
@@ -500,7 +503,7 @@ const handleStartChat = (item:any)=>{
           placeholderTextColor={colorScheme === 'dark' ? '#aaa' : '#666'}
           cursorColor={colors.primaryColor}
         />
-        <SearchIcon width={20} height={20} />
+        <SearchIcon width={20} height={20} color="#777"/>
       </View>
 
       {/* YELLOW BOTTOM BORDER */}

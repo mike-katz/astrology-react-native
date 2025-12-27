@@ -428,9 +428,10 @@ const handleStartChat = (item:any)=>{
               style={styles.walletIcon}
             />
             <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Text style={styles.addCashText}>Add Cash</Text>
-              <WalletPlusIcon width={12} height={12} style={{ marginLeft: 6 }} />
-            </View>
+            {userDetailsData.balance >0?(<Text style={styles.addCashText}>₹ {userDetailsData.balance}</Text>):(
+              <><Text style={styles.addCashText}>Add Cash</Text>
+            <WalletPlusIcon width={12} height={12} style={{ marginLeft: 6 }} /></>)}
+          </View>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => navigation.push('SearchScreen')} style={{ backgroundColor: '#FFF', padding: 3, borderRadius: 30, marginRight: 6 }}>

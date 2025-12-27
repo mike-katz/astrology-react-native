@@ -21,8 +21,10 @@ import moment from "moment";
 import { BackIcon } from "../../assets/icons";
 import { CustomDialogManager2 } from "../../utils/CustomDialog2";
 import { decryptData, secretKey } from "../../services/requests";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { removeWaitListItem, updateWaitListItem } from "../../redux/slices/waitListSlice";
+import { RootState } from "../../redux/store";
+import { getStatusStyle } from "../../constant/Helper";
 const { width } = Dimensions.get("window");
 
 // Example single item (replace with real data)
@@ -35,51 +37,6 @@ const SAMPLE_ORDERS = [
     message: "apki personal life bahut achi rahegi 2025 se",
     date: "29 Nov 2025",
     online: true,
-  },
-];
-
-const walletData = [
-  {
-    id: '1',
-    title: 'Chat with Astrologer for 2 minutes',
-    amount: '+₹ 0.0',
-    date: '29 Nov 25, 08:34 PM',
-    hash: '#CHAT_NEW295423182',
-  },
-  {
-    id: '2',
-    title: 'Call with Astrologer for 5 minutes',
-    amount: '+₹ 50.0',
-    date: '01 Dec 25, 05:12 PM',
-    hash: '#CHAT_CALL293889182',
-  },
-  {
-    id: '3',
-    title: 'Chat with Astrologer for 2 minutes',
-    amount: '+₹ 0.0',
-    date: '29 Nov 25, 08:34 PM',
-    hash: '#CHAT_NEW295423182',
-  },
-  {
-    id: '4',
-    title: 'Call with Astrologer for 5 minutes',
-    amount: '+₹ 50.0',
-    date: '01 Dec 25, 05:12 PM',
-    hash: '#CHAT_CALL293889182',
-  },
-  {
-    id: '5',
-    title: 'Chat with Astrologer for 2 minutes',
-    amount: '+₹ 0.0',
-    date: '29 Nov 25, 08:34 PM',
-    hash: '#CHAT_NEW295423182',
-  },
-  {
-    id: '6',
-    title: 'Call with Astrologer for 5 minutes',
-    amount: '+₹ 50.0',
-    date: '01 Dec 25, 05:12 PM',
-    hash: '#CHAT_CALL293889182',
   },
 ];
 
@@ -98,9 +55,12 @@ export default function OrderHistoryScreen() {
   const [page, setPage] = useState(1);
   const dispatch = useDispatch();
   const [pagePL, setPagePL] = useState(1);
+   const [loadingMorePL, setLoadingMorePL] = useState(false);
   const [paymentLogs, setPaymentLogs] = useState<any[]>([]);
   const [pagePT, setPagePT] = useState(1);
+    const [loadingMorePT, setLoadingMorePT] = useState(false);
   const [paymentTransactions, setPaymentTransactions] = useState<any[]>([]);
+  const userDetailsData = useSelector((state: RootState) => state.userDetails.userDetails);
 
   const tabs = useMemo(
     () => [
@@ -124,8 +84,10 @@ export default function OrderHistoryScreen() {
       setActivity(false);
       console.log("PaymentLogs response ==>" + response )
       const result = JSON.parse(response);
-      setPaymentLogs(result.data.results);
-
+           if (result.data.results.length === 0 || result.data.results.length < 100) {
+        setLoadingMorePL(false);
+      }
+    setPaymentLogs(prev => [...prev, ...(result.data.results)]);
     });
   }
   const callTransactions =()=>{
@@ -133,8 +95,11 @@ export default function OrderHistoryScreen() {
       setActivity(false);
       console.log("Transactions Logs response ==>" + response )
       const result = JSON.parse(response);
-      setPaymentTransactions(result.data.results);
-      // Alert.alert(result)
+      if (result.data.results.length === 0 || result.data.results.length < 100) {
+        setLoadingMorePT(false);
+      }
+      
+      setPaymentTransactions(prev => [...prev, ...(result.data.results)]);
     });
   }
 
@@ -195,14 +160,37 @@ export default function OrderHistoryScreen() {
     }, 0);
   }, []);
 
+
+      const loadMorePL = () => {
+    if (!loadingMorePL) {
+      setPagePL(prev => prev + 1);
+    }
+  };
+
+    const loadMorePT = () => {
+    if (!loadingMorePT) {
+      setPagePT(prev => prev + 1);
+    }
+  };
+
   const loadMore = () => {
     if (!loadingMore) {
       setPage(prev => prev + 1);
     }
   };
-  // useEffect(() => {
-  //   callOrderListApi();
-  // }, [page]);
+
+
+  useEffect(() => {
+  if (pagePL > 1) {
+    callPaymentLogs();
+  }
+}, [pagePL]);
+
+useEffect(() => {
+  if (pagePT > 1) {
+    callTransactions();
+  }
+}, [pagePT]);
 
   useEffect(() => {
   if (page > 1) {
@@ -230,8 +218,6 @@ useFocusEffect(
   }, [])
 );
 
-
-  const handleBack = () => navigation.goBack?.();
 
   const updateOrderItem = (id: any, changes: Partial<any>) => {
   setOrders(prev =>
@@ -335,26 +321,29 @@ useFocusEffect(
         )}
 
       }}>
-        <View style={styles.avatarWrap}>
-          <FastImage style={styles.avatar} source={{ uri: item.profile }} />
-          {item.online && <View style={styles.onlineDot} />}
-        </View>
+  
 
         <View style={styles.body}>
+          <Text>Order Id: #{item.order_id}</Text>
           <Text style={styles.name}>{item.name || 'Astrologer'}</Text>
-          <Text style={styles.message} numberOfLines={1}>
+           <Text style={styles.date}>{formatted}</Text>
+          {/* <Text style={styles.message} numberOfLines={1}>
             {item.message}
-          </Text>
-          <Text style={[styles.status]}>{item.status?.toUpperCase()}</Text>
-          {/* {item.status === "cancel" &&<Text style={[styles.status, { color:'red',borderColor: 'red' }]}>{item.status?.toUpperCase()}</Text>} */}
-          {/* {item.status === "pending" &&<Text style={[styles.status, { color:'#baab28',borderColor: '#baab28' }]}>{item.status?.toUpperCase()}</Text>} */}
-          {/* {item.status === "completed" &&<Text style={[styles.status, { color:'green',borderColor: 'green' }]}>{item.status?.toUpperCase()}</Text>} */}
+          </Text> */}
+          <Text style={[styles.status,getStatusStyle(item.status)]}>{item.status?.toUpperCase()}</Text>
           {item.status === "continue" && item.is_accept &&<Text style={[styles.subText,{color:'green'}]}>Your chat is inprogress.</Text>}
           {item.status === "pending" && <Text style={[styles.subText,{color:'red'}]}>Wait for pandit to accept your chat request.</Text>}
+        
+          <Text >Rate: ₹{item.rate}/min</Text>
+          <Text >Chat Type: {item.type}</Text>
         </View>
 
         <View style={styles.right}>
-          <Text style={styles.date}>{formatted}</Text>
+                <View style={styles.avatarWrap}>
+                <FastImage style={styles.avatar} source={{ uri: item.profile }} />
+                {item.online && <View style={styles.onlineDot} />}
+              </View>
+         
 
           {item.status === "continue" && item.is_accept && (
             <TouchableOpacity style={[styles.statusbtn, { borderColor: 'green' }]} onPress={()=>{
@@ -455,8 +444,10 @@ useFocusEffect(
             <Text style={styles.balanceTitle}>Available Balance</Text>
 
             <View style={styles.balanceRow}>
-              <Text style={styles.balanceAmount}>₹ 0.0</Text>
-              <TouchableOpacity style={styles.rechargeBtn}>
+              <Text style={styles.balanceAmount}>₹ {userDetailsData.balance}</Text>
+              <TouchableOpacity style={styles.rechargeBtn} onPress={()=>{
+                navigation.push("AddMoneyScreen");
+              }}>
                 <Text style={styles.rechargeText}>Recharge</Text>
               </TouchableOpacity>
             </View>
@@ -492,11 +483,13 @@ useFocusEffect(
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{ paddingVertical: 10 }}
 
-              renderItem={({ item }) => (
+              renderItem={({ item }) => {
+                const amount = Number(item.amount);
+                return(
                 <View style={styles.card}>
                   <View style={styles.cardRow}>
                     <Text style={styles.cardTitle}>{item.message}</Text>
-                    <Text style={styles.cardAmount}>{item.amount}</Text> 
+                    <Text style={[styles.cardAmount,{ color: amount < 0 ? '#E53935' : '#2E7D32' }]}>{amount < 0 ? `-₹ ${Math.abs(amount)}` : `+₹ ${amount}`}</Text> 
                     {/* +₹ */}
                   </View>
 
@@ -508,6 +501,9 @@ useFocusEffect(
                   </View>
                 </View>
               )}
+            }
+               onEndReached={loadMorePT}
+              onEndReachedThreshold={0.4}
               ListEmptyComponent={
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 50 }}>
                   <Text style={{ fontSize: 16, color: "#888", fontFamily: Fonts.Medium }}>
@@ -515,7 +511,7 @@ useFocusEffect(
                   </Text>
                 </View>
               }
-              ListFooterComponent={() => (loadingMore ? <View style={styles.loadingMore}><Text>Loading...</Text></View> : null)}
+              ListFooterComponent={() => (loadingMorePT ? <View style={styles.loadingMore}><Text>Loading...</Text></View> : null)}
             />}
 
             {activeWalletTab === 'payment' && 
@@ -525,11 +521,13 @@ useFocusEffect(
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{ paddingVertical: 10 }}
 
-              renderItem={({ item }) => (
+              renderItem={({ item }) => {
+                const amount = Number(item.amount);
+                return(
                 <View style={styles.card}>
                   <View style={styles.cardRow}>
                     <Text style={styles.cardTitle}>{item.type.toUpperCase()}{"\n"}{item.status.toUpperCase()}</Text>
-                    <Text style={styles.cardAmount}>{item.amount}{"\n"}({item.gst})</Text> 
+                    <Text style={[styles.cardAmount,{ color: amount < 0 ? '#E53935' : '#2E7D32' }]}>{amount < 0 ? amount : `+₹ ${amount}`}{"\n"}({item.gst})</Text> 
                     {/* +₹ */}
                   </View>
 
@@ -541,6 +539,10 @@ useFocusEffect(
                   </View>
                 </View>
               )}
+            }
+              onEndReached={loadMorePL}
+              onEndReachedThreshold={0.4}
+              
               ListEmptyComponent={
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 50 }}>
                   <Text style={{ fontSize: 16, color: "#888", fontFamily: Fonts.Medium }}>
@@ -548,7 +550,7 @@ useFocusEffect(
                   </Text>
                 </View>
               }
-              ListFooterComponent={() => (loadingMore ? <View style={styles.loadingMore}><Text>Loading...</Text></View> : null)}
+              ListFooterComponent={() => (loadingMorePL ? <View style={styles.loadingMore}><Text>Loading...</Text></View> : null)}
             />}
 
 
@@ -723,6 +725,16 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderBottomWidth: 0.6,
     borderColor: "#F2F2F2",
+    backgroundColor: '#fff', 
+    borderRadius: 12, 
+    padding: 12, 
+    borderWidth: 0.6, 
+    shadowColor: '#000', 
+    shadowOpacity: 0.03, 
+    shadowRadius: 6, 
+    elevation: 2, 
+    overflow: 'hidden',
+    marginBottom:11,
   },
 
   avatarWrap: {
@@ -772,8 +784,8 @@ const styles = StyleSheet.create({
   },
 
   right: {
-    width: 88,
-    alignItems: "flex-end",
+    // width: 88,
+    alignItems: "center",
     // justifyContent: "center",
     top: 0
   },
@@ -955,15 +967,15 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.Medium
   },
   status: {
-    marginTop:6,
+    // marginTop:6,
     width:'50%',
     alignItems: 'center',
-    borderColor: 'gray',
-    borderRadius: 10,
-    borderWidth: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    textAlign:'center'
+    // borderColor: 'gray',
+    // borderRadius: 10,
+    // borderWidth: 1,
+    // paddingHorizontal: 10,
+    // paddingVertical: 5,
+    // textAlign:'center'
   },
   statusbtn: {
     marginTop: 10,

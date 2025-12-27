@@ -27,7 +27,7 @@ import { BackIcon } from "../../assets/icons";
 import { useNavigation } from "@react-navigation/native";
 // import { socket } from '../../../socket';
 import RateAstrologerModal from "../../utils/RateAstrologerModal";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { ms, requestCameraPermission, requestGalleryPermission, StarRating, useCountdown } from "../../constant/Helper";
 import { AppSpinner } from "../../utils/AppSpinner";
@@ -50,6 +50,7 @@ import { OrderSeparator } from "../../utils/OrderSeparator";
 import { defaultProfile } from "../../constant/AppConst";
 import { MessageStatus } from "../../utils/MessageStatus";
 import ProfileSelector from "./ProfileSelector";
+import { removeWaitListItemOrder } from "../../redux/slices/waitListSlice";
 
 type Message = {
     id: string;
@@ -81,7 +82,7 @@ export default function ChatWindow({ route }: any) {
     const [isRecording, setIsRecording] = useState(false);
     const [isStopLoading, setIsStopLoading] = useState(false);
     const [pauseRecord, setPauseRecord] = useState(false);
-
+    const dispatch = useDispatch();
 
 
     // const [isConnected, setIsConnected] = useState(false);
@@ -119,7 +120,7 @@ export default function ChatWindow({ route }: any) {
     const EDGE_PADDING = 12;
     const [profileSelector, setProfileSelector] = useState(false);
     const [selectedName, setSelectedName] = useState<string>(""); 
-    const [selectedId, setSelectedId] = useState<string>("");
+    
 
   
 useEffect(() => {
@@ -186,8 +187,7 @@ useEffect(() => {
             if (result.success === true) {
               
               setSelectedName(result.name);
-              setSelectedId(result.id);
-
+             
                 setPanditDetail(result.data);
                 setAvatarUri(result.data.profile);
                 setPanditName(result.data.name);
@@ -491,9 +491,35 @@ useEffect(() => {
 
         const isUser = item.sender_type === "user"
         const formatted = moment(item.created_at).format("HH:mm");
+                const isDeleted =
+  item.sender_delete || (!isUser && item.receiver_delete);
+
         if (item.type === 'audio') {
             return (
-            <View>
+            <Pressable onLongPress={(e)=>{
+                    if(!isDeleted){
+                        setSelectedItem(item);
+                        const { pageX, pageY } = e.nativeEvent;
+                        let xPos: number;
+                        if (isUser) {
+                            // Left bubble → open menu to RIGHT
+                            xPos = pageX + MENU_WIDTH;
+                        } else {
+                            // Right bubble → open menu to LEFT
+                            xPos = pageX + MENU_WIDTH;
+                        }
+
+                        const safeX = Math.max(
+                            EDGE_PADDING,
+                            Math.min(xPos, SCREEN_WIDTH - MENU_WIDTH - EDGE_PADDING)
+                        );
+                        setContextMenuPos({
+                        x: safeX,
+                        y: pageY,
+                        });
+                       
+                        setShowContextMenu(true);
+                    }}}>
             {/* 🔹 Show Order Card when order changes */}
             {isNewOrder && (
                 <OrderSeparator
@@ -529,11 +555,10 @@ useEffect(() => {
                     </View>}
             </View>
 
-            </View>
+            </Pressable>
             );
         }
-        const isDeleted =
-  item.sender_delete || (!isUser && item.receiver_delete);
+
 
         return (
         <View>
@@ -559,7 +584,7 @@ useEffect(() => {
                         let xPos: number;
                         if (isUser) {
                             // Left bubble → open menu to RIGHT
-                            xPos = pageX;
+                            xPos = pageX + MENU_WIDTH;
                         } else {
                             // Right bubble → open menu to LEFT
                             xPos = pageX + MENU_WIDTH;
@@ -938,7 +963,7 @@ setTimeout(async () => {
             // console.log("End Chat Messages response ==>" + response);
             const result = JSON.parse(response);
             if (result.success === true) {
-
+                dispatch(removeWaitListItemOrder(orderId));
                 setIsChatEnded(true);
                 setMessages1((p) => [
                     
@@ -1047,8 +1072,9 @@ const handleStartChat = (item:any)=>{
 
         <SafeAreaProvider>
             <SafeAreaView style={styles.safe} edges={['top']}>
-                <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}
+                <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : "height"}
                 keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}>
+               
                     {/* Header */}
                     <View style={styles.header}>
 
@@ -1089,6 +1115,7 @@ const handleStartChat = (item:any)=>{
 
                     {/* Chat area */}
                     <ImageBackground source={BG} style={{ flex: 1 }} resizeMode="repeat">
+
                         <View style={styles.chatWrapper}>
                             <FlatList
                                 ref={flatRef}
@@ -1101,8 +1128,8 @@ const handleStartChat = (item:any)=>{
                                 onEndReached={loadMore}
                                 onEndReachedThreshold={0.4}
                                 removeClippedSubviews={false}
-                                keyboardDismissMode="interactive"
-                                keyboardShouldPersistTaps="always"
+                                 keyboardDismissMode="on-drag"
+                                keyboardShouldPersistTaps="handled"
                                 ListFooterComponent={() => (loadingMore ? <View style={styles.loadingMore}><Text>Loading...</Text></View> : null)}
                             />
 
@@ -1150,35 +1177,24 @@ const handleStartChat = (item:any)=>{
                                     }}>
                                         <Text style={styles.continueText}>Continue Chat</Text>
                                     </TouchableOpacity></>)}
-                        </View>
 
-
-
-                        {/* Bottom input */}
+                          {/* Bottom input */}
                           {!isChatEnded && (
-                                <View style={styles.inputBarWrap}>
+                            <View style={styles.inputBarWrap}>
                             <View style={styles.inputLeft}>
                                 {/* <TouchableOpacity style={styles.iconBtn}><Feather name="smile" size={20} color="#777" /></TouchableOpacity> */}
                                 <TouchableOpacity style={styles.iconBtn} onPress={() => {
                                     setShowAttachment(true);
                                 }}><Feather name="paperclip" size={20} color="#777" /></TouchableOpacity>
 
-                                    {/* <TouchableOpacity
+                               {text.trim().length === 0 && <TouchableOpacity
                                     style={styles.iconBtn}
-                                            onPressIn={async () => {
-                                                setIsRecording(true);
-                                                // const path = await startRecording();
-
-                                                // recorder.addRecordBackListener((e) => {
-                                                // const sec = Math.floor(e.currentPosition / 1000);
-                                                // setRecordTime(`0:${sec < 10 ? '0' + sec : sec}`);
-                                                // });
-
-                                                // setAudioPath(path);
-                                            }}
-                                            >
-                                    <Feather name="mic" size={20} />
-                                    </TouchableOpacity> */}
+                                        onPressIn={async () => {
+                                            onStartRecord();
+                                        }}
+                                        >
+                                    <Feather name="mic" size={20} color="#777" />
+                                </TouchableOpacity>}
                             </View>
 
                             <View style={styles.inputBox}>
@@ -1217,11 +1233,10 @@ const handleStartChat = (item:any)=>{
                                 }}>
                                     <Text style={[styles.endBtnText, { color: isChatEnded ? "#0B9E55" : "#D23B3B" }]}>{isChatEnded ? "Start" : "End"}</Text>
                                 </TouchableOpacity>)}
-
-                        
-
                             </View>
                         </View>)}
+
+                        </View>
 
                     </ImageBackground>
                 </KeyboardAvoidingView>
@@ -1328,7 +1343,7 @@ const styles = StyleSheet.create({
         width: 50,
         height: 40,
         justifyContent: "center",
-        paddingLeft: 10,
+        paddingLeft: 5,
     },
     profileWrapper: {
         width: 35,
@@ -1474,7 +1489,7 @@ const styles = StyleSheet.create({
         borderTopWidth: 0.6,
         borderColor: "#EAEAEA",
         backgroundColor: "#fff",
-        paddingBottom:Platform.OS==='ios'?26:0
+        paddingBottom:Platform.OS==='ios'?26:11,
     },
     inputLeft: { flexDirection: "row", alignItems: "center" },
     iconBtn: { padding: 8 },
@@ -1487,15 +1502,12 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: "#E8E8E8",
         paddingHorizontal: 12,
-        // justifyContent: "center",
         justifyContent: "flex-start",
     },
     input: { 
         fontSize: 15, 
-        // padding: 0, 
-        // paddingVertical: 6,
-         paddingVertical: 8,
- paddingHorizontal: 0,
+        color:'#000',
+        fontFamily:Fonts.Medium
      },
     inputRight: { flexDirection: "row", alignItems: "center" },
     sendBtn: {
@@ -1558,6 +1570,7 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 22,
         fontWeight: '700',
+        fontFamily:Fonts.Medium
     },
  
 

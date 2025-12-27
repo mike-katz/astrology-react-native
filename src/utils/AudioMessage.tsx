@@ -178,15 +178,19 @@ useEffect(() => {
               />
             ))}
       </View>
-      
+     
       <Slider
           style={styles.slider}
           minimumValue={0}
           maximumValue={Math.max(1, durationNum)}
           value={playbackPosition}
           onSlidingComplete={(v) => Sound.seekToPlayer(v)}
-           disabled={true}
+          minimumTrackTintColor="#000"   // played part
+          maximumTrackTintColor="#FFF"   // remaining part
+          thumbTintColor="transparent"
+          disabled={true}
         />
+       
         </View>
     
       <Text style={styles.timeText}>

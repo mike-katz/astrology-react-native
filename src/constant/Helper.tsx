@@ -182,3 +182,18 @@ export const to12Hour = (iso: string) => {
     hour12: true,
   });
 };
+
+export const getStatusStyle = (status?: string) => {
+  switch (status) {
+     case 'completed':
+      return { color: '#2DBE60' }; // green
+    case 'continue':
+      return { color: '#2DBE60' }; // green
+    case 'pending':
+      return { color: '#FF9800' }; // orange
+    case 'cancel':
+      return { color: '#D23B3B' }; // red
+    default:
+      return { color: '#777' };    // fallback
+  }
+};

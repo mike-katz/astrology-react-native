@@ -107,7 +107,13 @@ const buildNumber = DeviceInfo.getBuildNumber(); // e.g. "101"
       break;
 
     case "Wallet Transactions":
-      // navigation.navigate("WalletScreen");
+                 if(ServiceConstants.User_ID==null){
+          navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'AuthStack' }]
+                      });
+       }else
+          navigation.push("OrderHistoryScreen");
       break;
 
     case "Order History":

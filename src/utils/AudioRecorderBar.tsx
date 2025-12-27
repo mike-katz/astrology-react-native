@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
+import { Fonts } from '../styles';
 const BAR_COUNT = 25;
 export default function AudioRecorderBar({
   duration,
@@ -117,25 +118,30 @@ const stopWaveAnimation = () => {
 
 const styles = StyleSheet.create({
   container: {
-    height: 70,
+    position:'absolute',
+    width:'100%',
+    height: 90,
     backgroundColor: '#1f1f1f',
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 14,
+    bottom:0
   },
   timer: {
     color: '#fff',
     marginHorizontal: 10,
     fontSize: 16,
+    fontFamily:Fonts.Medium
   },
   wave: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent:'center',
   },
   waveBar: {
     width: 3,
-    height: 14,
+    height: 28,
     backgroundColor: '#fff',
     marginHorizontal: 2,
     borderRadius: 2,

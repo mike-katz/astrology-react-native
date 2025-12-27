@@ -30,6 +30,7 @@ import TimePickerDialog from "../../utils/TimePickerDialog";
 import PlusIcon from "../../assets/icons/PlusIcon";
 import TickIcon from "../../assets/icons/TickIcon";
 import ProfilePicPicker from "../../utils/ProfilePicPicker";
+import { defaultProfile } from "../../constant/AppConst";
 
 const EditProfileScreen = ({ navigation, route }: any) => {
      const dispatch = useDispatch();
@@ -176,8 +177,7 @@ const EditProfileScreen = ({ navigation, route }: any) => {
     }
 
 const renderProfilePic = () => {
-//   if (!profilePic) return defaultImage;
-
+    
   // if it's require local file
   if (typeof profilePic === 'number') {
     return profilePic; // because require returns a number ID
@@ -195,12 +195,19 @@ const renderProfilePic = () => {
     return { uri: profilePic };
   }
 
+    if (defaultProfile) return {
+        uri: defaultProfile,
+        priority: FastImage.priority.normal,
+    };
+
   // remote URL
   return {
     uri: profilePic,
     priority: FastImage.priority.high,
     cache: FastImage.cacheControl.immutable,
   };
+
+  
 };
 
     return (

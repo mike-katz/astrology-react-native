@@ -1,6 +1,6 @@
 import * as React from "react"
 import Svg, { SvgProps, Path } from "react-native-svg"
-const SvgComponent = ({width=22,height=22,...props}) => (
+const SvgComponent = ({width=22,height=22,color="#000",...props}) => (
   <Svg
     
     width={width}
@@ -10,7 +10,7 @@ const SvgComponent = ({width=22,height=22,...props}) => (
     viewBox="0 0 22 22"
   >
     <Path
-      stroke="#000"
+      stroke={color}
       strokeLinecap="round"
       strokeLinejoin="round"
       strokeWidth={2}
